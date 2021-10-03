@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-videoaddon" version="1.0.0"
+	xmlns="http://apache.org/cordova/ns/plugins/1.0"
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<name>cordova-plugin-videoaddon</name>
+	<js-module name="VideoPlayer" src="www/cordova-plugin-videoaddon.js">
+		<clobbers target="VideoPlayer" />
+	</js-module>
+	<platform name="ios">
+		<!-- Hooks -->
+		<hook type="before_plugin_install" src="hooks/install_prerequisites.js"/>
+		<hook type="after_plugin_add" src="hooks/add_swift_support.js" />
+
+		<!-- iOS Source Files -->
+		<source-file src="src/ios/VideoPlayer.swift" />
+		<source-file src="src/ios/DeskercisesViewController.swift" />
+		<source-file src="src/ios/MindfulnessViewController.swift" />
+		<source-file src="src/ios/Subtitles.swift" />
+
+		<config-file parent="/*" target="config.xml">
+			<feature name="VideoPlayer">
+				<param name="ios-package" value="VideoPlayer" />
+			</feature>
+		</config-file>
+	</platform>
+</plugin>
