@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-videoaddon",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Plays a video sequence with swap gestures",
   "cordova": {
     "id": "cordova-plugin-videoaddon",
@@ -17,7 +17,6 @@
     "cordova-ios"
   ],
   "author": "André Grillo",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/andregrillo/cordova-plugin-videoaddon/issues"
   },
