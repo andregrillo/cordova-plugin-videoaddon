@@ -8,9 +8,41 @@
 import Foundation
 
 @objc(VideoPlayer) class VideoPlayer: CDVPlugin {
-
+    
     @objc(loadMindfullness:)
     func loadMindfullness(command: CDVInvokedUrlCommand) {
+        var pluginResult = CDVPluginResult()
+        
+        if let videoArray = command.arguments[0] as? [String], let audioArray = command.arguments[1] as? [String], let audioVoiceURL = command.arguments[2] as? String, let subtitleURL = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
+            
+            //MARK: LOAD BREATHWORK VIDEOS FORM URL
+            let playerViewController = MindfulnessViewController()
+            playerViewController.loadMindfullnessVideosFromURL(videoArray:  videoArray,
+                                                             audioArray: audioArray,
+                                                             audioVoiceURL: audioVoiceURL,
+                                                             subtitleURL: subtitleURL,
+                                                             secondsToSkip: secondsToSkip,
+                                                             isLiked: isLiked)
+                                                             { watchedTime, isLiked in
+                                                                 print(watchedTime)
+                                                                 print(isLiked)
+                                                             }
+            
+            playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+            self.viewController.present(playerViewController, animated: true, completion: nil)
+            
+            pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
+            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+            
+        } else {
+            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Missing input parameters")
+            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+        }
+        
+    }
+
+    @objc(loadBreathwork:)
+    func loadBreathwork(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
         if let backgroundVideoURL = command.arguments[0] as? String, let audioArray = command.arguments[1] as? [String], let audioVoiceURL = command.arguments[2] as? String, let subtitleURL = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {

@@ -35,6 +35,12 @@ class DeskercisesViewController: UIViewController {
     private var labelBgView:UIView!
     private var topLabel:UILabel!
     
+    private var swipeIcon:UIImageView!
+    private var swipeIcon2:UIImageView!
+    private var swipeIcon3:UIImageView!
+    
+    private var arrowTimer:Timer?
+    private var animationIndex = 0
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -55,6 +61,7 @@ class DeskercisesViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        self.arrowTimer?.invalidate()
     }
     private func createScreen() {
         self.controlView = UIView()
@@ -132,15 +139,75 @@ class DeskercisesViewController: UIViewController {
         swipeLabel.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -16).isActive = true
         swipeLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: -15).isActive = true
         
-        let swipeIcon = UIImageView()
+        swipeIcon = UIImageView()
         swipeIcon.translatesAutoresizingMaskIntoConstraints = false
-        swipeIcon.image = UIImage(named: "close_lighter")
+        swipeIcon.image = UIImage(named: "chevron-left-solid")
+        swipeIcon.tintColor = .white
         swipeIcon.contentMode = .scaleAspectFit
         self.controlView.addSubview(swipeIcon)
         swipeIcon.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor).isActive = true
         swipeIcon.leadingAnchor.constraint(equalTo: swipeLabel.trailingAnchor ,constant:  8).isActive = true
-        swipeIcon.widthAnchor.constraint(equalToConstant: 35).isActive = true
-        swipeIcon.heightAnchor.constraint(equalToConstant: 35).isActive = true
+        swipeIcon.widthAnchor.constraint(equalToConstant: 15).isActive = true
+        swipeIcon.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        
+        swipeIcon2 = UIImageView()
+        swipeIcon2.translatesAutoresizingMaskIntoConstraints = false
+        swipeIcon2.image = UIImage(named: "chevron-left-solid")
+        swipeIcon2.tintColor = .white
+        swipeIcon2.contentMode = .scaleAspectFit
+        self.controlView.addSubview(swipeIcon2)
+        swipeIcon2.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor).isActive = true
+        swipeIcon2.leadingAnchor.constraint(equalTo: swipeIcon.trailingAnchor ,constant:  -8).isActive = true
+        swipeIcon2.widthAnchor.constraint(equalToConstant: 15).isActive = true
+        swipeIcon2.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        
+        swipeIcon3 = UIImageView()
+        swipeIcon3.translatesAutoresizingMaskIntoConstraints = false
+        swipeIcon3.image = UIImage(named: "chevron-left-solid")
+        swipeIcon3.tintColor = .white
+        swipeIcon3.contentMode = .scaleAspectFit
+        self.controlView.addSubview(swipeIcon3)
+        swipeIcon3.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor).isActive = true
+        swipeIcon3.leadingAnchor.constraint(equalTo: swipeIcon2.trailingAnchor ,constant:  -8).isActive = true
+        swipeIcon3.widthAnchor.constraint(equalToConstant: 15).isActive = true
+        swipeIcon3.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        
+        
+        arrowTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true, block: { (_) in
+           
+           
+               
+            UIView.animate(withDuration: 0.3, delay: 0, options: [UIView.AnimationOptions.curveLinear]) {
+                    self.animationIndex = (self.animationIndex + 1) % 4
+                    switch self.animationIndex {
+                        case 0:
+                            self.swipeIcon.tintColor = .lightGray
+                            self.swipeIcon2.tintColor = .darkGray
+                            self.swipeIcon3.tintColor = .black
+                            break
+                        case 1:
+                            self.swipeIcon.tintColor = .darkGray
+                            self.swipeIcon2.tintColor = .black
+                            self.swipeIcon3.tintColor = .white
+                            break
+                        case 2:
+                            self.swipeIcon.tintColor = .black
+                            self.swipeIcon2.tintColor = .white
+                            self.swipeIcon3.tintColor = .lightGray
+                            break
+                        case 3:
+                            self.swipeIcon.tintColor = .white
+                            self.swipeIcon2.tintColor = .lightGray
+                            self.swipeIcon3.tintColor = .darkGray
+                        break
+                        default:
+                            break
+                        
+                    }
+                    
+                }
+       })
+
         
         let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(swipedScreenLeft))
         swipeLeft.direction = .left
