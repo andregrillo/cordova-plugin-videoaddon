@@ -51,7 +51,7 @@ class MindfulnessViewController: UIViewController {
     
     
     private var closeTimer:Timer?
-    private var callback:((Int, Bool)->())?
+    private var callback:((Bool, Bool)->())?
     
     private var watchedTimeTimer:Timer?
     private var watchedTime = 0
@@ -326,8 +326,8 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter subtitleURL:String to the subtitles file (.srt)
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
-    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Int, Bool) meaning (seconds watched, isLiked)
-    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleURL:String, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Int, Bool)->())) {
+    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
+    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleURL:String, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
         self.isMindfullness = true
@@ -443,8 +443,8 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter subtitleData:Data to the subtitles file (.srt)
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
-    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Int, Bool) meaning (seconds watched, isLiked)
-    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Int, Bool)->())) {
+    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
+    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
         self.isMindfullness = true
@@ -577,8 +577,8 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter subtitleURL:String to the subtitles file (.srt)
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
-    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Int, Bool) meaning (seconds watched, isLiked)
-    func loadBreathworkVideosFromURL(backgroundVideoURL:String, audioArray:[String], audioVoiceURL:String, subtitleURL:String, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Int, Bool)->())) {
+    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
+    func loadBreathworkVideosFromURL(backgroundVideoURL:String, audioArray:[String], audioVoiceURL:String, subtitleURL:String, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
         self.isMindfullness = false
@@ -672,8 +672,8 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter subtitleData:Data to the subtitles file (.srt)
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
-    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Int, Bool) meaning (seconds watched, isLiked)
-    func loadBreathworkVideosFromData(backgroundVideoData:Data, audioArray:[Data], audioVoiceData:Data, subtitleData:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Int, Bool)->())) {
+    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
+    func loadBreathworkVideosFromData(backgroundVideoData:Data, audioArray:[Data], audioVoiceData:Data, subtitleData:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
         self.isMindfullness = true
@@ -802,7 +802,9 @@ class MindfulnessViewController: UIViewController {
     
     @objc func closeClick() {
         closeTimer?.invalidate()
-        self.callback?(self.watchedTime, self.likeBtn.isSelected)
+        let maxTime = (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()
+        
+        self.callback?(self.watchedTime >= (Int(maxTime) * 80 / 100), self.likeBtn.isSelected)
         
         if self.navigationController?.topViewController == self {
             self.navigationController?.popViewController(animated: true)

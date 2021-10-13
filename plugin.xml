@@ -16,6 +16,21 @@
 		<source-file src="src/ios/MindfulnessViewController.swift" />
 		<source-file src="src/ios/Subtitles.swift" />
 
+		<!-- iOS Resource Files -->
+		<resource-file src="src/ios/resources/backAndImg.png" />
+		<resource-file src="src/ios/resources/chevron-left-solid.png" />
+		<resource-file src="src/ios/resources/close_lighter.png" />
+		<resource-file src="src/ios/resources/like_lighter.png" />
+		<resource-file src="src/ios/resources/like_medium.png" />
+		<resource-file src="src/ios/resources/likefilled_lighter.png" />
+		<resource-file src="src/ios/resources/likefilled_medium.png" />
+		<resource-file src="src/ios/resources/MPlayer_FWD_WithNum_2x.png" />
+		<resource-file src="src/ios/resources/MPlayer_Pause_2x.png" />
+		<resource-file src="src/ios/resources/MPlayer_Play_2x.png" />
+		<resource-file src="src/ios/resources/MPlayer_RWD_WithNum_2x.png" />
+		<resource-file src="src/ios/resources/personIcon.png" />
+		<resource-file src="src/ios/resources/soundIcon.png" />
+
 		<config-file parent="/*" target="config.xml">
 			<feature name="VideoPlayer">
 				<param name="ios-package" value="VideoPlayer" />

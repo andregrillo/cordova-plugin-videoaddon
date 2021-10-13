@@ -141,7 +141,7 @@ class DeskercisesViewController: UIViewController {
         
         swipeIcon = UIImageView()
         swipeIcon.translatesAutoresizingMaskIntoConstraints = false
-        swipeIcon.image = UIImage(named: "chevron-left-solid")
+        swipeIcon.image = UIImage(named: "chevron-left-solid")?.withRenderingMode(.alwaysTemplate)
         swipeIcon.tintColor = .white
         swipeIcon.contentMode = .scaleAspectFit
         self.controlView.addSubview(swipeIcon)
@@ -152,7 +152,7 @@ class DeskercisesViewController: UIViewController {
         
         swipeIcon2 = UIImageView()
         swipeIcon2.translatesAutoresizingMaskIntoConstraints = false
-        swipeIcon2.image = UIImage(named: "chevron-left-solid")
+        swipeIcon2.image = UIImage(named: "chevron-left-solid")?.withRenderingMode(.alwaysTemplate)
         swipeIcon2.tintColor = .white
         swipeIcon2.contentMode = .scaleAspectFit
         self.controlView.addSubview(swipeIcon2)
@@ -163,7 +163,7 @@ class DeskercisesViewController: UIViewController {
         
         swipeIcon3 = UIImageView()
         swipeIcon3.translatesAutoresizingMaskIntoConstraints = false
-        swipeIcon3.image = UIImage(named: "chevron-left-solid")
+        swipeIcon3.image = UIImage(named: "chevron-left-solid")?.withRenderingMode(.alwaysTemplate)
         swipeIcon3.tintColor = .white
         swipeIcon3.contentMode = .scaleAspectFit
         self.controlView.addSubview(swipeIcon3)
