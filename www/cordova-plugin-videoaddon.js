@@ -11,3 +11,9 @@ exports.playMindfulness = function (success, error, videoArray,audioArray,audioV
 exports.loadBreathwork = function (success, error, backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
     exec(success, error, 'VideoPlayer', 'loadBreathwork', [backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked]);
 };
+
+exports.playMindfulnessFromLocal = function (success, error, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
+    exec(success, error, 'VideoPlayer', 'loadMindfullnessVideosFromData', [videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked]);
+};
+
+
