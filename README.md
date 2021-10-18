@@ -9,5 +9,5 @@ VideoPlayer.loadBreathwork(function(s){alert(s)},function(e){alert(e)},"https://
 
 VideoPlayer.playMindfulness(function(s){alert(s)},function(e){alert(e)},["https://videodelivery.net/53e4716d4644ec7e2c1dc98fd60b56cd/manifest/video.m3u8", "https://videodelivery.net/f496c5243c9ad7f62db8e1a0c9885afb/manifest/video.m3u8"],["https://biotronik-dev.outsystemsenterprise.com/DeStress_App_Res/02_OceanWaves.mp3", "https://biotronik-dev.outsystemsenterprise.com/DeStress_App_Res/01_ForestRain.mp3"],"https://biotronik-dev.outsystemsenterprise.com/DeStress_App_Res3/GM-02-De-EscalatingStress.mp3","https://azappcore.blob.core.windows.net/azappcore/sub_1632129097732.srt",10,false);
 
-VideoPlayer.playMindfulnessFromLocal(function(s){alert(s)},function(e){alert(e)},["video.mp4", "video.mp4"],["01_ForestRain.mp3"],"GM-02-De-EscalatingStress.mp3","sub_1632129097732.srt",10,false);
+VideoPlayer.playMindfulnessFromLocal(function(s){alert(s)},function(e){alert(e)},["myVideoFolder/video.mp4", "myVideoFolder/video.mp4"],["myAudioFolder/01_ForestRain.mp3"],"myAudioFolder/GM-02-De-EscalatingStress.mp3","mySubtitleFolder/sub_1632129097732.srt",10,false);
 
