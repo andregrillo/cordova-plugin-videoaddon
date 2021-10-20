@@ -291,7 +291,7 @@ extension UIViewController {
             subtitleLabel?.backgroundColor = UIColor.clear
             subtitleLabel?.textAlignment = .center
             subtitleLabel?.numberOfLines = 0
-            subtitleLabel?.font = UIFont.boldSystemFont(ofSize: UI_USER_INTERFACE_IDIOM() == .pad ? 40.0 : 22.0)
+            subtitleLabel?.font = UIFont(name: "Biryani-Bold", size: 11)
             subtitleLabel?.textColor = UIColor.white
             subtitleLabel?.numberOfLines = 0;
             subtitleLabel?.layer.shadowColor = UIColor.black.cgColor

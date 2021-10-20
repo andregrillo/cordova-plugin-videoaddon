@@ -53,15 +53,17 @@ class DeskercisesViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.playBackground), name: UIScene.didActivateNotification, object: nil)
         //avoids mute setting
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
         
     }
-
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         self.arrowTimer?.invalidate()
+        NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
     }
     private func createScreen() {
         self.controlView = UIView()
@@ -112,7 +114,9 @@ class DeskercisesViewController: UIViewController {
         topLabel.translatesAutoresizingMaskIntoConstraints = false
         topLabel.textColor = .white
         topLabel.text = ""
-        topLabel.font = UIFont.systemFont(ofSize: 14)
+        topLabel.font = UIFont(name: "Biryani-Bold", size: 12)
+        topLabel.minimumScaleFactor = 0.1
+        topLabel.adjustsFontSizeToFitWidth = true
         self.controlView.addSubview(topLabel)
         topLabel.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 0).isActive = true
         topLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
@@ -129,7 +133,7 @@ class DeskercisesViewController: UIViewController {
         
         let swipeLabel = UILabel()
         swipeLabel.translatesAutoresizingMaskIntoConstraints = false
-        swipeLabel.font = UIFont.systemFont(ofSize: 18)
+        swipeLabel.font = UIFont(name: "Biryani-Bold", size: 14)
         swipeLabel.textColor = .white
         swipeLabel.text = "Swipe for next activity"
 
@@ -178,28 +182,33 @@ class DeskercisesViewController: UIViewController {
            
                
             UIView.animate(withDuration: 0.3, delay: 0, options: [UIView.AnimationOptions.curveLinear]) {
-                    self.animationIndex = (self.animationIndex + 1) % 4
+                    self.animationIndex = (self.animationIndex + 1) % 5
                     switch self.animationIndex {
+
                         case 0:
-                            self.swipeIcon.tintColor = .lightGray
-                            self.swipeIcon2.tintColor = .darkGray
-                            self.swipeIcon3.tintColor = .black
+                            self.swipeIcon.tintColor = self.colorFromHexString("808080")
+                            self.swipeIcon2.tintColor = self.colorFromHexString("a0a0a0")
+                            self.swipeIcon3.tintColor = self.colorFromHexString("c0c0c0")
                             break
                         case 1:
-                            self.swipeIcon.tintColor = .darkGray
-                            self.swipeIcon2.tintColor = .black
-                            self.swipeIcon3.tintColor = .white
+                            self.swipeIcon.tintColor = self.colorFromHexString("a0a0a0")
+                            self.swipeIcon2.tintColor = self.colorFromHexString("c0c0c0")
+                            self.swipeIcon3.tintColor = self.colorFromHexString("e0e0e0")
                             break
                         case 2:
-                            self.swipeIcon.tintColor = .black
-                            self.swipeIcon2.tintColor = .white
-                            self.swipeIcon3.tintColor = .lightGray
+                            self.swipeIcon.tintColor = self.colorFromHexString("c0c0c0")
+                            self.swipeIcon2.tintColor = self.colorFromHexString("e0e0e0")
+                            self.swipeIcon3.tintColor = self.colorFromHexString("ffffff")
                             break
                         case 3:
-                            self.swipeIcon.tintColor = .white
-                            self.swipeIcon2.tintColor = .lightGray
-                            self.swipeIcon3.tintColor = .darkGray
-                        break
+                            self.swipeIcon.tintColor = self.colorFromHexString("e0e0e0")
+                            self.swipeIcon2.tintColor = self.colorFromHexString("ffffff")
+                            self.swipeIcon3.tintColor = self.colorFromHexString("808080")
+                        case 4:
+                            self.swipeIcon.tintColor = self.colorFromHexString("ffffff")
+                            self.swipeIcon2.tintColor = self.colorFromHexString("808080")
+                            self.swipeIcon3.tintColor = self.colorFromHexString("a0a0a0")
+                            break
                         default:
                             break
                         
@@ -241,6 +250,7 @@ class DeskercisesViewController: UIViewController {
       
         //MARK: Main player setup
         let playerItem = AVPlayerItem(url: URL(string: videoArray[0])!)
+        playerItem.preferredForwardBufferDuration = TimeInterval(30)
         mainVideo = AVQueuePlayer(items: [playerItem])
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         mainVideo.volume = 1
@@ -253,12 +263,12 @@ class DeskercisesViewController: UIViewController {
         //MARK: Second player setup
         if videoArray.count > 1 && videoTitleArray.count > 1 {
             let pi2 = AVPlayerItem(url: URL(string: videoArray[1])!)
+            pi2.preferredForwardBufferDuration = TimeInterval(30)
             secondVideo = AVQueuePlayer(items: [pi2])
             secondVideoLooper = AVPlayerLooper(player: secondVideo, templateItem: pi2)
             
             secondVideo.automaticallyWaitsToMinimizeStalling = true
             secondVideo.volume = 1
-
             
             //second video player
             playerLayer2 = AVPlayerLayer(player: secondVideo)
@@ -272,6 +282,7 @@ class DeskercisesViewController: UIViewController {
         if videoArray.count > 2 && videoTitleArray.count > 2 {
 
             let pi3 = AVPlayerItem(url: URL(string: videoArray[2])!)
+            pi3.preferredForwardBufferDuration = TimeInterval(30)
             thirdVideo = AVQueuePlayer(items: [pi3])
             thirdVideoLooper = AVPlayerLooper(player: thirdVideo, templateItem: pi3)
             thirdVideo.automaticallyWaitsToMinimizeStalling = false
@@ -316,7 +327,7 @@ class DeskercisesViewController: UIViewController {
         mainVideo = AVQueuePlayer(items: [playerItem])
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         mainVideo.volume = 0
-      
+        secondVideo.automaticallyWaitsToMinimizeStalling = true
         //video player
         playerLayer = AVPlayerLayer(player: mainVideo)
         playerLayer?.videoGravity = .resizeAspectFill;
@@ -351,7 +362,7 @@ class DeskercisesViewController: UIViewController {
             let pi3 = AVPlayerItem(url: urlVideo)
             thirdVideo = AVQueuePlayer(items: [pi3])
             thirdVideoLooper = AVPlayerLooper(player: thirdVideo, templateItem: pi3)
-            thirdVideo.automaticallyWaitsToMinimizeStalling = false
+            thirdVideo.automaticallyWaitsToMinimizeStalling = true
             thirdVideo.volume = 0
             
             //third video player
@@ -406,7 +417,7 @@ class DeskercisesViewController: UIViewController {
         self.playBackground()
     }
     
-    
+   
    
    
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -431,7 +442,10 @@ class DeskercisesViewController: UIViewController {
                     self.mainVideo.preroll(atRate: 1) { (mainFinished) in
                         print("m1 preroll \(mainFinished)")
                         if mainFinished {
-                            self.playBackground()
+                            DispatchQueue.main.async {
+                                self.mainVideo.play()
+                            }
+                           
                         }
                     }
                 }
@@ -439,7 +453,10 @@ class DeskercisesViewController: UIViewController {
                     self.secondVideo.preroll(atRate: 1) { (main2Finished) in
                         print("m2 preroll \(main2Finished)")
                         if main2Finished {
-                            self.playBackground()
+                            DispatchQueue.main.async {
+                                self.secondVideo.play()
+                            }
+                            
                         }
                     }
                 }
@@ -448,7 +465,10 @@ class DeskercisesViewController: UIViewController {
                     self.thirdVideo.preroll(atRate: 1) { (main3Finished) in
                         print("m3 preroll \(main3Finished)")
                         if main3Finished {
-                            self.playBackground()
+                            DispatchQueue.main.async {
+                                self.thirdVideo.play()
+                            }
+                            
                         }
                     }
                 }
@@ -464,7 +484,7 @@ class DeskercisesViewController: UIViewController {
           }
     }
     
-    func playBackground(){
+    @objc func playBackground(){
         DispatchQueue.main.async {
             self.mainVideo.play()
             self.secondVideo.play()
@@ -508,6 +528,26 @@ class DeskercisesViewController: UIViewController {
             }
         }
        
+    }
+    
+    func colorFromHexString(_ hexString:String) -> UIColor{
+        
+        var hexStr = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
+       
+        var rgbColor:UInt64 = 0
+        
+        if hexStr.hasPrefix("#"){
+            hexStr.removeFirst()
+        }
+        if hexStr.count == 8 {
+            hexStr.removeFirst(2)
+        }
+        let scanner = Scanner(string: hexStr)
+        scanner.scanHexInt64(&rgbColor)
+        
+        return UIColor.init(red: CGFloat(((rgbColor & 0xFF0000) >> 16))/CGFloat(255.0), green: CGFloat(((rgbColor & 0x00FF00) >> 8))/CGFloat(255.0), blue: CGFloat((rgbColor & 0x0000FF))/CGFloat(255.0), alpha: 1.0)
+        
+        
     }
 }
 

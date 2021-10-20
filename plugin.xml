@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="cordova-plugin-videoaddon" version="1.0.1"
+<plugin id="cordova-plugin-videoaddon" version="1.0.6"
 	xmlns="http://apache.org/cordova/ns/plugins/1.0"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>cordova-plugin-videoaddon</name>
@@ -31,6 +31,7 @@
 		<resource-file src="src/ios/resources/MPlayer_RWD_WithNum_2x.png" />
 		<resource-file src="src/ios/resources/personIcon.png" />
 		<resource-file src="src/ios/resources/soundIcon.png" />
+		<resource-file src="src/ios/resources/Biryani-Bold.ttf" />
 
 		<config-file parent="/*" target="config.xml">
 			<feature name="VideoPlayer">

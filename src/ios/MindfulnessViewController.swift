@@ -38,6 +38,8 @@ class MindfulnessViewController: UIViewController {
             audioSlider?.transform = CGAffineTransform(rotationAngle: -.pi/2)
         }
     }
+    private var audioSliderView:UIView!
+    
     private var seekerSlider:UISlider!
     private var subtitleSwitch = UISwitch()
     private var pageIndicator : UIPageControl!{
@@ -63,7 +65,7 @@ class MindfulnessViewController: UIViewController {
     private var timeLabel:UILabel!
     
     private var isMindfullness:Bool = true
-    
+    private var seekerTouched = false
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         self.playerLayer?.frame = self.view.bounds
@@ -72,10 +74,13 @@ class MindfulnessViewController: UIViewController {
         self.subtitleSwitch.layer.borderColor = UIColor.white.cgColor
         self.subtitleSwitch.layer.borderWidth = 1
         self.subtitleSwitch.layer.cornerRadius = self.subtitleSwitch.frame.height/2
+       // self.playBackground()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.playBackground), name: UIScene.didActivateNotification, object: nil)
         //avoids mute setting
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
@@ -94,11 +99,12 @@ class MindfulnessViewController: UIViewController {
         super.viewDidDisappear(animated)
         self.watchedTimeTimer?.invalidate()
         self.closeTimer?.invalidate()
+        NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
     }
     private func createScreen() {
         self.controlView = UIView()
         controlView?.translatesAutoresizingMaskIntoConstraints = false
-        self.controlView?.backgroundColor = UIColor.white.withAlphaComponent(0.3)
+        self.controlView?.backgroundColor = UIColor.black.withAlphaComponent(0.25)
         self.view.addSubview(self.controlView!)
         
         NSLayoutConstraint(item: controlView!, attribute: NSLayoutConstraint.Attribute.leading, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.leading, multiplier: 1, constant: 0).isActive = true
@@ -125,6 +131,7 @@ class MindfulnessViewController: UIViewController {
         subLabel.textColor = .white
         subLabel.translatesAutoresizingMaskIntoConstraints = false
         self.controlView.addSubview(subLabel)
+        subLabel.font = UIFont(name: "Biryani-Bold", size: 12)
         subLabel.centerYAnchor.constraint(equalTo: self.subtitleSwitch.centerYAnchor).isActive = true
         subLabel.trailingAnchor.constraint(equalTo: self.subtitleSwitch.leadingAnchor, constant: -16).isActive = true
         
@@ -192,6 +199,17 @@ class MindfulnessViewController: UIViewController {
             pagerTopIcon.heightAnchor.constraint(equalToConstant: 25).isActive = true
         }
         
+        audioSliderView = UIView()
+        audioSliderView?.translatesAutoresizingMaskIntoConstraints = false
+        audioSliderView?.backgroundColor = .clear
+        audioSliderView?.widthAnchor.constraint(equalToConstant: 50).isActive = true
+        audioSliderView?.heightAnchor.constraint(equalToConstant: 150).isActive = true
+       
+        self.controlView.addSubview(audioSliderView)
+        audioSliderView.centerYAnchor.constraint(equalTo: self.playPauseBtn.centerYAnchor).isActive = true
+        //audioSlider is rotated. center is width / 2
+        audioSliderView.leftAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.leftAnchor, constant: 40).isActive = true
+        
         //audio slider
         audioSlider = UISlider()
         audioSlider.maximumValue = 1
@@ -202,14 +220,15 @@ class MindfulnessViewController: UIViewController {
         audioSlider.tag = 1
         audioSlider.minimumTrackTintColor = .white
         audioSlider.maximumTrackTintColor = .lightGray
-        
-        self.controlView.addSubview(audioSlider!)
-        audioSlider.centerYAnchor.constraint(equalTo: self.playPauseBtn.centerYAnchor).isActive = true
-        //audioSlider is rotated. center is width / 2
-        audioSlider.leftAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.leftAnchor, constant: -30).isActive = true
+        audioSlider.backgroundColor = .clear
+        self.audioSliderView?.addSubview(audioSlider!)
         
         audioSlider.widthAnchor.constraint(equalToConstant: 150).isActive = true
-        audioSlider.heightAnchor.constraint(equalToConstant: 20).isActive = true
+        audioSlider.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        
+        //constraints to middleview
+        audioSlider.centerXAnchor.constraint(equalTo: audioSliderView!.centerXAnchor).isActive = true
+        audioSlider.centerYAnchor.constraint(equalTo: audioSliderView!.centerYAnchor,constant:  0).isActive = true
         
         
         //seekerSlider lider
@@ -221,13 +240,14 @@ class MindfulnessViewController: UIViewController {
         seekerSlider.tintColor = .blue
         seekerSlider.tag = 2
         seekerSlider.addTarget(self, action: #selector(sliderValueDidChange(_:)), for: .valueChanged)
+        seekerSlider.addTarget(self, action: #selector(touchedUp), for: .touchUpInside)
         seekerSlider.translatesAutoresizingMaskIntoConstraints = false
         seekerSlider.minimumTrackTintColor = .white
         seekerSlider.maximumTrackTintColor = .lightGray
         
         self.controlView?.addSubview(seekerSlider)
         
-        seekerSlider.topAnchor.constraint(equalTo: self.playPauseBtn.bottomAnchor, constant: 120).isActive = true
+        seekerSlider.topAnchor.constraint(equalTo: self.playPauseBtn.bottomAnchor, constant: 130).isActive = true
         seekerSlider.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -64).isActive = true
         seekerSlider.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 64).isActive = true
         
@@ -238,6 +258,7 @@ class MindfulnessViewController: UIViewController {
         timeLabel.translatesAutoresizingMaskIntoConstraints = false
         timeLabel.textColor = .white
         timeLabel.text = "0:00/0.00"
+        timeLabel.font = UIFont(name: "Biryani-Bold", size: 14)
         self.controlView.addSubview(timeLabel)
         timeLabel.topAnchor.constraint(equalTo: self.seekerSlider.bottomAnchor, constant: 20).isActive = true
         timeLabel.centerXAnchor.constraint(equalTo: self.seekerSlider.centerXAnchor).isActive = true
@@ -248,7 +269,7 @@ class MindfulnessViewController: UIViewController {
         audioSliderTopIcon.image = UIImage(named: "personIcon")
         self.controlView.addSubview(audioSliderTopIcon)
         audioSliderTopIcon.centerXAnchor.constraint(equalTo: self.audioSlider.centerXAnchor).isActive = true
-        audioSliderTopIcon.bottomAnchor.constraint(equalTo: self.audioSlider.topAnchor, constant: -80).isActive = true
+        audioSliderTopIcon.bottomAnchor.constraint(equalTo: self.audioSlider.topAnchor, constant: -60).isActive = true
         audioSliderTopIcon.widthAnchor.constraint(equalToConstant: 25).isActive = true
         audioSliderTopIcon.heightAnchor.constraint(equalToConstant: 25).isActive = true
         audioSliderTopIcon.contentMode = .scaleAspectFit
@@ -258,7 +279,7 @@ class MindfulnessViewController: UIViewController {
         audioSliderBottomIcon.image = UIImage(named: "soundIcon")
         self.controlView.addSubview(audioSliderBottomIcon)
         audioSliderBottomIcon.centerXAnchor.constraint(equalTo: self.audioSlider.centerXAnchor).isActive = true
-        audioSliderBottomIcon.topAnchor.constraint(equalTo: self.audioSlider.bottomAnchor, constant: 80).isActive = true
+        audioSliderBottomIcon.topAnchor.constraint(equalTo: self.audioSlider.bottomAnchor, constant: 60).isActive = true
         audioSliderBottomIcon.widthAnchor.constraint(equalToConstant: 25).isActive = true
         audioSliderBottomIcon.heightAnchor.constraint(equalToConstant: 25).isActive = true
         audioSliderBottomIcon.contentMode = .scaleAspectFit
@@ -313,10 +334,25 @@ class MindfulnessViewController: UIViewController {
         swipeDown.direction = .down
         self.view.addGestureRecognizer(swipeDown)
         
+        let dummySwipeUp = UISwipeGestureRecognizer(target: self, action: #selector(swipedScreenUp))
+        dummySwipeUp.direction = .up
+        dummySwipeUp.cancelsTouchesInView = true
+        audioSliderView.addGestureRecognizer(dummySwipeUp)
+        let dummySwipeDown = UISwipeGestureRecognizer(target: self, action: #selector(swipedScreenDown))
+        dummySwipeDown.direction = .down
+        dummySwipeDown.cancelsTouchesInView = true
+        audioSliderView.addGestureRecognizer(dummySwipeDown)
     }
-    
-  
-    
+
+    @objc func touchedUp() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            if !self.seekerSlider.isHighlighted {
+                self.seekerTouched = false
+            }
+           
+        }
+       
+    }
     /// Loads videos passed in params with URLs.
     ///
     /// - Warning: The number os items in video array shoud be equal to the number os items un audioArray
@@ -344,6 +380,7 @@ class MindfulnessViewController: UIViewController {
         }
         //MARK: Main player setup
         let playerItem = AVPlayerItem(url: URL(string: videoArray[0])!)
+        playerItem.preferredForwardBufferDuration = TimeInterval(30)
         mainVideo = AVQueuePlayer(items: [playerItem])
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         let playerAudioItem = AVPlayerItem(url: URL(string: audioArray[0])!)
@@ -360,6 +397,7 @@ class MindfulnessViewController: UIViewController {
         //MARK: Second player setup
         if videoArray.count > 1 && audioArray.count > 1 {
             let pi2 = AVPlayerItem(url: URL(string: videoArray[1])!)
+            pi2.preferredForwardBufferDuration = TimeInterval(30)
             secondVideo = AVQueuePlayer(items: [pi2])
             secondVideoLooper = AVPlayerLooper(player: secondVideo, templateItem: pi2)
             let pai2 = AVPlayerItem(url: URL(string: audioArray[1])!)
@@ -382,6 +420,7 @@ class MindfulnessViewController: UIViewController {
         if videoArray.count > 2 && audioArray.count > 2 {
 
             let pi3 = AVPlayerItem(url: URL(string: videoArray[2])!)
+            pi3.preferredForwardBufferDuration = TimeInterval(30)
             thirdVideo = AVQueuePlayer(items: [pi3])
             thirdVideoLooper = AVPlayerLooper(player: thirdVideo, templateItem: pi3)
             let pai3 = AVPlayerItem(url: URL(string: audioArray[2])!)
@@ -415,7 +454,7 @@ class MindfulnessViewController: UIViewController {
             self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
            
             print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted {
+            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched{
                 self.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
             
@@ -551,7 +590,7 @@ class MindfulnessViewController: UIViewController {
             self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
 
             print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted {
+            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
                 self.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
 
@@ -595,6 +634,7 @@ class MindfulnessViewController: UIViewController {
         }
         //MARK: Main player setup
         let playerItem = AVPlayerItem(url: URL(string: backgroundVideoURL)!)
+        playerItem.preferredForwardBufferDuration = TimeInterval(30)
         mainVideo = AVQueuePlayer(items: [playerItem])
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         let playerAudioItem = AVPlayerItem(url: URL(string: audioArray[0])!)
@@ -645,7 +685,7 @@ class MindfulnessViewController: UIViewController {
             self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
            
             print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted {
+            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
                 self.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
             
@@ -752,7 +792,7 @@ class MindfulnessViewController: UIViewController {
             self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
 
             print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted {
+            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
                 self.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
 
@@ -778,7 +818,7 @@ class MindfulnessViewController: UIViewController {
         skipBtn?.setTitleColor(.white, for: .normal)
         skipBtn?.widthAnchor.constraint(equalToConstant: 80).isActive = true
         skipBtn?.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        skipBtn?.titleLabel?.font = UIFont.systemFont(ofSize: 14)
+        skipBtn?.titleLabel?.font = UIFont(name: "Biryani-Bold", size: 12)
         skipBtn?.addTarget(self, action: #selector(skipIntro(sender:)), for: .touchUpInside)
         self.controlView.addSubview(skipBtn!)
         skipBtn?.centerYAnchor.constraint(equalTo: self.subtitleSwitch.centerYAnchor).isActive = true
@@ -814,9 +854,11 @@ class MindfulnessViewController: UIViewController {
         }
 
     }
-    @objc func swipedScreenUp() {
-
+    @objc func swipedScreenUp(_ sender:UISwipeGestureRecognizer) {
         print("swipe up")
+        if sender.view == self.audioSliderView {
+            return
+        }
         self.currentBackgroundVideoIndex = (self.currentBackgroundVideoIndex  + 1) % self.maxVideos
         self.pageIndicator.currentPage = self.currentBackgroundVideoIndex
         
@@ -833,12 +875,13 @@ class MindfulnessViewController: UIViewController {
         }
        
     }
-    @objc func swipedScreenDown() {
-     
+    @objc func swipedScreenDown(_ sender:UISwipeGestureRecognizer) {
         print("swipe down")
-        print("current down \(self.currentBackgroundVideoIndex)")
+        if sender.view == self.audioSliderView {
+            return
+        }
+        
         self.currentBackgroundVideoIndex = (self.currentBackgroundVideoIndex  - 1) % self.maxVideos
-        print("after down \(self.currentBackgroundVideoIndex)")
         if self.currentBackgroundVideoIndex < 0{
             self.currentBackgroundVideoIndex = self.maxVideos - 1
         }
@@ -885,8 +928,8 @@ class MindfulnessViewController: UIViewController {
         }
     }
     
-    func startCloseTimer() {
-        closeTimer = Timer.scheduledTimer(withTimeInterval: 2, repeats: false, block: { (_) in
+    func startCloseTimer(seconds:Int = 2) {
+        closeTimer = Timer.scheduledTimer(withTimeInterval: TimeInterval(seconds), repeats: false, block: { (_) in
             DispatchQueue.main.async {
                 self.hideShowControls()
             }
@@ -896,6 +939,7 @@ class MindfulnessViewController: UIViewController {
     @objc func playerDidFinishPlaying(_ notification: Notification) {
         if audioVoice.currentTime() == audioVoice.currentItem?.duration {
             self.pause()
+            self.closeClick()
         }
     }
     func getTime(roundedSeconds:Double) -> String {
@@ -949,25 +993,25 @@ class MindfulnessViewController: UIViewController {
     }
     @objc func sliderValueDidChange(_ sender:UISlider){
         if sender.tag == 1 {
-            audioVoice.volume = 1.0 - (audioSlider?.value ?? 0.0)
+            audioVoice.volume = audioSlider?.value ?? 0.0
             
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.mainAudio.volume = self.audioSlider?.value ?? 0
+                self.mainAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 self.secondAudio.volume = 0
                 self.thirdAudio.volume = 0
                 print(mainAudio.volume)
                 break
             case 1:
                 self.mainAudio.volume = 0
-                self.secondAudio.volume = self.audioSlider?.value ?? 0
+                self.secondAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 self.thirdAudio.volume = 0
                 print(secondAudio.volume)
                 break
             case 2:
                 self.mainAudio.volume = 0
                 self.secondAudio.volume = 0
-                self.thirdAudio.volume = self.audioSlider?.value ?? 0
+                self.thirdAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 print(thirdAudio.volume)
                 break
             default:
@@ -978,6 +1022,7 @@ class MindfulnessViewController: UIViewController {
             print(audioVoice.volume)
         }
         else if sender.tag == 2 {
+            self.seekerTouched = true
             let seconds : Int64 = Int64(sender.value)
             let time:CMTime = CMTimeMake(value: seconds, timescale: 1)
             audioVoice.seek(to: time)
@@ -1027,7 +1072,7 @@ class MindfulnessViewController: UIViewController {
                         print("a1 preroll \(audioFinished2)")
                         if audioFinished2 {
                             self.playPauseBtn.isSelected = true
-                            self.play()
+                            self.play(shoudHide5Sec: true)
                         }
                         else {
                             DispatchQueue.main.async {
@@ -1045,20 +1090,26 @@ class MindfulnessViewController: UIViewController {
             @unknown default:
                 break
               }
-          }
+        } 
+       
     }
     
-    func play() {
+    func play(shoudHide5Sec:Bool = false) {
         print("play")
         self.playBackground()
         self.audioVoice.play()
-        self.audioVoice.volume = 1.0 - (self.audioSlider?.value ?? 0.0)
+        self.audioVoice.volume = self.audioSlider?.value ?? 0.0
         if let a = audioVoice.currentItem?.asset.duration {
             seekerSlider?.maximumValue = Float(a.seconds)
             self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
         }
        
-        self.hideControls()
+        if shoudHide5Sec {
+            self.startCloseTimer(seconds: 5)
+        }
+        else {
+            self.startCloseTimer()
+        }
     }
   
     func pause(){
@@ -1070,7 +1121,7 @@ class MindfulnessViewController: UIViewController {
         self.showControls()
     }
     
-    func playBackground(){
+    @objc func playBackground(){
         DispatchQueue.main.async {
             self.mainVideo.play()
             self.mainAudio.play()
@@ -1105,7 +1156,7 @@ class MindfulnessViewController: UIViewController {
                 self.playerLayer?.isHidden = false
                 self.playerLayer2?.isHidden = true
                 self.playerLayer3?.isHidden = true
-                self.mainAudio.volume = self.audioSlider?.value ?? 0
+                self.mainAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 self.secondAudio.volume = 0
                 self.thirdAudio.volume = 0
                 break
@@ -1114,7 +1165,7 @@ class MindfulnessViewController: UIViewController {
                 self.playerLayer2?.isHidden = false
                 self.playerLayer3?.isHidden = true
                 self.mainAudio.volume = 0
-                self.secondAudio.volume = self.audioSlider?.value ?? 0
+                self.secondAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 self.thirdAudio.volume = 0
                 break
             case 2:
@@ -1123,7 +1174,7 @@ class MindfulnessViewController: UIViewController {
                 self.playerLayer3?.isHidden = false
                 self.mainAudio.volume = 0
                 self.secondAudio.volume = 0
-                self.thirdAudio.volume = self.audioSlider?.value ?? 0
+                self.thirdAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 break
             default:
                 break
@@ -1136,19 +1187,19 @@ class MindfulnessViewController: UIViewController {
         DispatchQueue.main.async {
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.mainAudio.volume = self.audioSlider?.value ?? 0
+                self.mainAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 self.secondAudio.volume = 0
                 self.thirdAudio.volume = 0
                 break
             case 1:
                 self.mainAudio.volume = 0
-                self.secondAudio.volume = self.audioSlider?.value ?? 0
+                self.secondAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 self.thirdAudio.volume = 0
                 break
             case 2:
                 self.mainAudio.volume = 0
                 self.secondAudio.volume = 0
-                self.thirdAudio.volume = self.audioSlider?.value ?? 0
+                self.thirdAudio.volume = 1.0 - (self.audioSlider?.value ?? 0)
                 break
             default:
                 break
