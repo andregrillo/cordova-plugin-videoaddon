@@ -63,7 +63,11 @@ class DeskercisesViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         self.arrowTimer?.invalidate()
-        NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
+        if #available(iOS 13.0, *) {
+            NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
+        } else {
+            // Fallback on earlier versions
+        }
     }
     private func createScreen() {
         self.controlView = UIView()
