@@ -80,7 +80,11 @@ class MindfulnessViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        NotificationCenter.default.addObserver(self, selector: #selector(self.playBackground), name: UIScene.didActivateNotification, object: nil)
+        if #available(iOS 13.0, *) {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.playBackground), name: UIScene.didActivateNotification, object: nil)
+        } else {
+            NotificationCenter.default.addObserver(self, selector: #selector(self.playBackground), name: UIApplication.willEnterForegroundNotification, object: nil)
+        }
         //avoids mute setting
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
@@ -99,7 +103,11 @@ class MindfulnessViewController: UIViewController {
         super.viewDidDisappear(animated)
         self.watchedTimeTimer?.invalidate()
         self.closeTimer?.invalidate()
-        NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
+        if #available(iOS 13.0, *) {
+            NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
+        } else {
+            NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
+        }
     }
     private func createScreen() {
         self.controlView = UIView()
