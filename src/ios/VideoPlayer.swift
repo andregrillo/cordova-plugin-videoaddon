@@ -123,6 +123,7 @@ import Foundation
     @objc(loadMindfullnessVideosFromData:)
     func loadMindfullnessVideosFromData(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
+//        let libraryDirectory2 = try! FileManager.default.url(for: .allLibrariesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
         if let videoArray = command.arguments[0] as? [String], let audioArray = command.arguments[1] as? [String], let voice = command.arguments[2] as? String, let subtitle = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
@@ -132,26 +133,21 @@ import Foundation
             for video in videoArray {
                 let videoURL: URL = {
                     var url: URL!
-                    do {
-                        let path = try FileManager.default.subpathsOfDirectory(atPath: "\(libraryDirectory.path)/NoCloud/Files/\(video)").first!
-                        if let urlPath = URL(string: path) {
-                            url = urlPath
-                        } else {
-                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(video) as input")
-                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                        }
-                    } catch {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Could not locate the local Files directory")
-                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    }
+                        let videoPath = "file://\(libraryDirectory.path)" + "/NoCloud/Files/\(video)"
+                            if let urlPath = URL(string: videoPath) {
+                                url = urlPath
+                            } else {
+                                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error getting local directory path using \(video) as input")
+                                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                            }
                     return url
                 }()
                 if FileManager.default.fileExists(atPath: videoURL.path){
                     do {
-                        let videoData = try Data.init(contentsOf: videoURL)
+                        let videoData = try Data(contentsOf: videoURL)
                         videoDataArray.append(videoData)
                     } catch {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Local video file \(video) not found")
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Local video file \(video) not found: \(error)")
                         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                     }
                 }
@@ -162,26 +158,22 @@ import Foundation
             for audio in audioArray {
                 let audioURL: URL = {
                     var url: URL!
-                    do {
-                        let path = try FileManager.default.subpathsOfDirectory(atPath: "\(libraryDirectory.path)/NoCloud/Files/\(audio)").first!
-                        if let urlPath = URL(string: path) {
-                            url = urlPath
-                        } else {
-                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(audio) as input")
-                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                        }
-                    } catch {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Could not locate the local Files directory")
-                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    }
+                        let audioPath = "file://\(libraryDirectory.path)" + "/NoCloud/Files/\(audio)"
+                            if let urlPath = URL(string: audioPath) {
+                                url = urlPath
+                            } else {
+                                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error getting local directory path using \(audio) as input")
+                                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                            }
                     return url
                 }()
                 if FileManager.default.fileExists(atPath: audioURL.path){
                     do {
-                        let audioData = try Data.init(contentsOf: audioURL)
+                        let audioData = try Data(contentsOf: audioURL)
                         audioDataArray.append(audioData)
                     } catch {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Local audio file \(audio) not found")
+                        print("Error: \(error)")
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Local audio file \(audio) not found: \(error)")
                         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                     }
                 }
@@ -190,23 +182,18 @@ import Foundation
             var voiceData = Data()
             let audioVoiceURL: URL = {
                 var url: URL!
-                do {
-                    let path = try FileManager.default.subpathsOfDirectory(atPath: "\(libraryDirectory.path)/NoCloud/Files/\(voice)").first!
-                    if let urlPath = URL(string: path) {
-                        url = urlPath
-                    } else {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(voice) as input")
-                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    }
-                } catch {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Could not locate the local Files directory")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                }
+                    let audioVoicePath = "file://\(libraryDirectory.path)" + "/NoCloud/Files/\(voice)"
+                        if let urlPath = URL(string: audioVoicePath) {
+                            url = urlPath
+                        } else {
+                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error getting local directory path using \(voice) as input")
+                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        }
                 return url
             }()
             if FileManager.default.fileExists(atPath: audioVoiceURL.path){
                 do {
-                    voiceData = try Data.init(contentsOf: audioVoiceURL)
+                    voiceData = try Data(contentsOf: audioVoiceURL)
                 } catch {
                     pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Local voice audio file \(voice) not found")
                     self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
@@ -216,19 +203,15 @@ import Foundation
             var subtitleData = Data()
             let subtitleURL: URL = {
                 var url: URL!
-                do {
-                    let path = try FileManager.default.subpathsOfDirectory(atPath: "\(libraryDirectory.path)/NoCloud/Files/\(subtitle)").first!
-                    if let urlPath = URL(string: path) {
-                        url = urlPath
-                    } else {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(subtitle) as input")
-                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    }
-                } catch {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Could not locate the local Files directory")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                }
+                    let subtitlePath = "file://\(libraryDirectory.path)" + "/NoCloud/Files/\(subtitle)"
+                        if let urlPath = URL(string: subtitlePath) {
+                            url = urlPath
+                        } else {
+                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error getting local directory path using \(subtitle) as input")
+                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        }
                 return url
+                
             }()
             if FileManager.default.fileExists(atPath: subtitleURL.path){
                 do {
