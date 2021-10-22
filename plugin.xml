@@ -38,5 +38,10 @@
 				<param name="ios-package" value="VideoPlayer" />
 			</feature>
 		</config-file>
+		<config-file target="*-Info.plist" parent="UIAppFonts">
+				<array>
+					<string>Biryani-Bold.ttf</string>
+				</array>
+		</config-file>
 	</platform>
 </plugin>
