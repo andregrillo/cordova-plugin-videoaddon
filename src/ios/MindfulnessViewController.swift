@@ -850,6 +850,7 @@ class MindfulnessViewController: UIViewController {
     
     @objc func closeClick() {
         closeTimer?.invalidate()
+        self.pause()
         let maxTime = (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()
         
         self.callback?(self.watchedTime >= (Int(maxTime) * 80 / 100), self.likeBtn.isSelected)
@@ -946,7 +947,6 @@ class MindfulnessViewController: UIViewController {
     
     @objc func playerDidFinishPlaying(_ notification: Notification) {
         if audioVoice.currentTime() == audioVoice.currentItem?.duration {
-            self.pause()
             self.closeClick()
         }
     }

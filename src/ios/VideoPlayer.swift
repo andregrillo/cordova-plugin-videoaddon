@@ -24,7 +24,7 @@ import Foundation
                                                              secondsToSkip: secondsToSkip,
                                                              isLiked: isLiked)
             { watchedTime, isLiked in
-                playerViewController.dismiss(animated: false, completion: nil)
+//                playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
                    let json = String(data: jsonData, encoding: String.Encoding.ascii) {
@@ -64,7 +64,7 @@ import Foundation
                                                              secondsToSkip: secondsToSkip,
                                                              isLiked: isLiked)
             { watchedTime, isLiked in
-                playerViewController.dismiss(animated: false, completion: nil)
+//                playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
                    let json = String(data: jsonData, encoding: String.Encoding.ascii) {
@@ -97,7 +97,7 @@ import Foundation
             //MARK: LOAD DESKERCISES VIDEOS FROM URL
             let playerViewController = DeskercisesViewController()
             playerViewController.loadDeskercisesVideosFromURL(videoArray: videoArrayURL, videoTitleArray: videoArrayTitle, isLiked: liked, callback: { (isLiked) in
-                playerViewController.dismiss(animated: false, completion: nil)
+//                playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
                    let json = String(data: jsonData, encoding: String.Encoding.ascii) {
@@ -230,7 +230,7 @@ import Foundation
                                                                 secondsToSkip: secondsToSkip,
                                                                 isLiked: isLiked)
             { watchedTime, isLiked in
-                playerViewController.dismiss(animated: false, completion: nil)
+//                playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
                    let json = String(data: jsonData, encoding: String.Encoding.ascii) {

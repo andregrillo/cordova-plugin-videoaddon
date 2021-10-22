@@ -391,6 +391,7 @@ class DeskercisesViewController: UIViewController {
     }
     
     @objc func closeClick() {
+        self.pause()
         self.callback?(self.likeBtn.isSelected)
         
         if self.navigationController?.topViewController == self {
@@ -424,9 +425,6 @@ class DeskercisesViewController: UIViewController {
         self.playBackground()
     }
     
-   
-   
-   
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         // Only handle observations for the playerItemContext
         guard (object as? AVPlayer) == self.mainVideo || (object as? AVPlayer) == self.secondVideo || (object as? AVPlayer) == self.thirdVideo else {
@@ -501,6 +499,13 @@ class DeskercisesViewController: UIViewController {
            
         }
       
+    }
+   
+    func pause(){
+        print("pause")
+        self.mainVideo.pause()
+        self.secondVideo.pause()
+        self.thirdVideo.pause()
     }
    
     func switchVideo() {
