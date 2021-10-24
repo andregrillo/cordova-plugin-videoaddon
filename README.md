@@ -11,3 +11,7 @@ VideoPlayer.playMindfulness(function(s){alert(s)},function(e){alert(e)},["https:
 
 VideoPlayer.playMindfulnessFromLocal(function(s){alert(s)},function(e){alert(e)},["myVideoFolder/video.mp4", "myVideoFolder/video.mp4"],["myAudioFolder/01_ForestRain.mp3"],"myAudioFolder/GM-02-De-EscalatingStress.mp3","mySubtitleFolder/sub_1632129097732.srt",10,false);
 
+VideoPlayer.playDeskercisesFromLocal(function(s){alert(s)},function(e){alert(e)},["myVideoFolder/video.mp4", "myVideoFolder/video.mp4"],["video 1", "video 2"],false);
+        
+VideoPlayer.loadBreathworkFromLocal(function(s){alert(s)},function(e){alert(e)},"myVideoFolder/video.mp4",["myAudioFolder//02_OceanWaves.mp3", "myAudioFolder/01_ForestRain.mp3"],"myAudioFolder/GM-02-De-EscalatingStress.mp3","mySubtitleFolder/sub_1632129097732.srt",10,false);
+
