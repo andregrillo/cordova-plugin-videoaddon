@@ -428,18 +428,13 @@ import Foundation
             for video in videoFilesArray {
                 let videoURL: URL = {
                     var url: URL!
-                    do {
-                        let path = try FileManager.default.subpathsOfDirectory(atPath: "\(libraryDirectory.path)/NoCloud/Files/\(video)").first!
+                        let path = "file://\(libraryDirectory.path)/NoCloud/Files/\(video)"
                         if let urlPath = URL(string: path) {
                             url = urlPath
                         } else {
                             pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(video) as input")
                             self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                         }
-                    } catch {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Could not locate the local Files directory")
-                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    }
                     return url
                 }()
                 if FileManager.default.fileExists(atPath: videoURL.path){
@@ -447,6 +442,7 @@ import Foundation
                         let videoData = try Data.init(contentsOf: videoURL)
                         videoDataArray.append(videoData)
                     } catch {
+                        print(">>> Error: \(error.localizedDescription)")
                         pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Local video file \(video) not found")
                         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                     }
