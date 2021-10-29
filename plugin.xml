@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="cordova-plugin-videoaddon" version="1.1.2"
+<plugin id="cordova-plugin-videoaddon" version="1.2.0"
 	xmlns="http://apache.org/cordova/ns/plugins/1.0"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>cordova-plugin-videoaddon</name>
@@ -32,6 +32,49 @@
 		<resource-file src="src/ios/resources/personIcon.png" />
 		<resource-file src="src/ios/resources/soundIcon.png" />
 		<resource-file src="src/ios/resources/Biryani-Bold.ttf" />
+
+		<!-- iOS Resource Files - LoadingGif -->
+		<resource-file src="src/ios/resources/LoadingGif/Loader0.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader1.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader2.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader3.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader4.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader5.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader6.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader7.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader8.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader9.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader10.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader11.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader12.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader13.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader14.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader15.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader16.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader17.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader18.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader19.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader20.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader21.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader22.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader23.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader24.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader25.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader26.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader27.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader28.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader29.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader30.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader31.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader32.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader33.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader34.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader35.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader36.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader37.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader38.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader39.png" />
+		<resource-file src="src/ios/resources/LoadingGif/Loader40.png" />
 
 		<config-file parent="/*" target="config.xml">
 			<feature name="VideoPlayer">

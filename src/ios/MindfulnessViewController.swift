@@ -21,17 +21,24 @@ class MindfulnessViewController: UIViewController {
     private var mainAudioLooper: AVPlayerLooper?
    
     private var secondVideoLooper: AVPlayerLooper?
-    private var secondVideo  = AVQueuePlayer()
+    private var secondVideo:AVQueuePlayer?
     private var secondAudioLooper: AVPlayerLooper?
     private var secondAudio = AVQueuePlayer()
     
     
     private var thirdVideoLooper: AVPlayerLooper?
-    private var thirdVideo  = AVQueuePlayer()
+    private var thirdVideo:AVQueuePlayer?
     private var thirdAudioLooper: AVPlayerLooper?
     private var thirdAudio = AVQueuePlayer()
        
+    private var videoView:UIView!
     private var controlView:UIView!
+    private var loadingView :UIView!
+    private var gifView:UIImageView?
+    private var gifTimer:Timer?
+    private var currentGifIndex = 0
+    private var maxGifIndex = 40
+    private var splashImage: UIImage?
     
     private var audioSlider:UISlider!{
         didSet{
@@ -66,6 +73,9 @@ class MindfulnessViewController: UIViewController {
     
     private var isMindfullness:Bool = true
     private var seekerTouched = false
+    
+   
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         self.playerLayer?.frame = self.view.bounds
@@ -79,11 +89,15 @@ class MindfulnessViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.backgroundColor = .black
         
         if #available(iOS 13.0, *) {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.playBackground), name: UIScene.didActivateNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.appDidEnterForeground), name: UIScene.didActivateNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.appDidEnterBackground), name: UIScene.didEnterBackgroundNotification, object: nil)
+            
         } else {
-            NotificationCenter.default.addObserver(self, selector: #selector(self.playBackground), name: UIApplication.willEnterForegroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.appDidEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(self.appDidEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
         }
         //avoids mute setting
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
@@ -97,12 +111,21 @@ class MindfulnessViewController: UIViewController {
             }
             
         })
+        
+        gifTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true, block: { (_) in
+            self.currentGifIndex = (self.currentGifIndex + 1) % self.maxGifIndex
+            DispatchQueue.main.async {
+                self.gifView?.image = UIImage(named: "Loader\(self.currentGifIndex)")
+            }
+            
+        })
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         self.watchedTimeTimer?.invalidate()
         self.closeTimer?.invalidate()
+        self.gifTimer?.invalidate()
         if #available(iOS 13.0, *) {
             NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
         } else {
@@ -110,6 +133,44 @@ class MindfulnessViewController: UIViewController {
         }
     }
     private func createScreen() {
+        self.loadingView = UIView()
+        loadingView?.translatesAutoresizingMaskIntoConstraints = false
+        self.view.addSubview(self.loadingView!)
+        
+        NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.leading, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.leading, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.trailing, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.trailing, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1, constant: 0).isActive = true
+        
+        let splashView = UIImageView(image: splashImage)
+        splashView.translatesAutoresizingMaskIntoConstraints = false
+        splashView.contentMode = .scaleAspectFill
+        self.loadingView.addSubview(splashView)
+
+        splashView.topAnchor.constraint(equalTo: self.loadingView.topAnchor, constant: 0).isActive = true
+        splashView.leftAnchor.constraint(equalTo: self.loadingView.leftAnchor, constant: 0).isActive = true
+        splashView.rightAnchor.constraint(equalTo: self.loadingView.rightAnchor, constant: 0).isActive = true
+        splashView.bottomAnchor.constraint(equalTo: self.loadingView.bottomAnchor, constant: 0).isActive = true
+  
+        gifView = UIImageView(image: UIImage(named: "Loader0"))
+        gifView?.translatesAutoresizingMaskIntoConstraints = false
+        gifView?.contentMode = .scaleAspectFit
+        loadingView.addSubview(gifView!)
+        gifView?.centerXAnchor.constraint(equalTo: self.loadingView.centerXAnchor, constant: 0).isActive = true
+        gifView?.centerYAnchor.constraint(equalTo: self.loadingView.centerYAnchor, constant: 0).isActive = true
+        gifView?.widthAnchor.constraint(equalToConstant: 150).isActive = true
+        gifView?.heightAnchor.constraint(equalToConstant: 150).isActive = true
+        
+        self.videoView = UIView()
+        videoView?.translatesAutoresizingMaskIntoConstraints = false
+        videoView.backgroundColor = .clear
+        self.view.addSubview(self.videoView!)
+        
+        NSLayoutConstraint(item: videoView!, attribute: NSLayoutConstraint.Attribute.leading, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.leading, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: videoView!, attribute: NSLayoutConstraint.Attribute.trailing, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.trailing, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: videoView!, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1, constant: 0).isActive = true
+        NSLayoutConstraint(item: videoView!, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1, constant: 0).isActive = true
+        
         self.controlView = UIView()
         controlView?.translatesAutoresizingMaskIntoConstraints = false
         self.controlView?.backgroundColor = UIColor.black.withAlphaComponent(0.25)
@@ -123,7 +184,31 @@ class MindfulnessViewController: UIViewController {
         
         NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying), name: .AVPlayerItemDidPlayToEndTime, object: nil)
         
-
+        likeBtn.translatesAutoresizingMaskIntoConstraints = false
+        likeBtn.tintColor = .black
+        likeBtn.setImage(UIImage(named: "like_lighter"), for: .normal)
+        likeBtn.setImage(UIImage(named: "likefilled_lighter"), for: .selected)
+        likeBtn.backgroundColor = .clear
+        likeBtn.setTitle("", for: .normal)
+        self.controlView.addSubview(likeBtn)
+        likeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        likeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
+        likeBtn.addTarget(self, action: #selector(setLikeClick(_:)), for: .touchUpInside)
+        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
+        likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 24).isActive = true
+        
+        let closeBtn = UIButton()
+        closeBtn.translatesAutoresizingMaskIntoConstraints = false
+        closeBtn.setImage(UIImage(named: "close_lighter"), for: .normal)
+        closeBtn.backgroundColor = .clear
+        closeBtn.setTitle("", for: .normal)
+        self.controlView.addSubview(closeBtn)
+        closeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        closeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
+        closeBtn.addTarget(self, action: #selector(closeClick), for: .touchUpInside)
+        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
+        closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -24).isActive = true
+        
         //subtitle switch
         subtitleSwitch.setOn(true, animated: true)
         subtitleSwitch.translatesAutoresizingMaskIntoConstraints = false
@@ -132,7 +217,7 @@ class MindfulnessViewController: UIViewController {
         subtitleSwitch.bottomAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.bottomAnchor, constant: -100).isActive = true
         subtitleSwitch.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -32).isActive = true
         subtitleSwitch.addTarget(self, action: #selector(subtitleSwitchValueDidChange(_:)), for: .valueChanged)
-        subtitleSwitch.onTintColor = .white
+        subtitleSwitch.onTintColor = colorFromHexString("a3afd3")
         
         let subLabel = UILabel()
         subLabel.text = "Subtitles"
@@ -185,7 +270,7 @@ class MindfulnessViewController: UIViewController {
         self.controlView.addSubview(pageIndicator!)
         pageIndicator.centerYAnchor.constraint(equalTo: self.playPauseBtn.centerYAnchor).isActive = true
         //audioSlider is rotated. center is width / 2
-        pageIndicator.rightAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.rightAnchor, constant: -0).isActive = true
+        pageIndicator.centerXAnchor.constraint(equalTo: closeBtn.centerXAnchor, constant: 0).isActive = true
         pageIndicator.isUserInteractionEnabled = false
         
         let pagerTopIcon = UIImageView()
@@ -216,13 +301,13 @@ class MindfulnessViewController: UIViewController {
         self.controlView.addSubview(audioSliderView)
         audioSliderView.centerYAnchor.constraint(equalTo: self.playPauseBtn.centerYAnchor).isActive = true
         //audioSlider is rotated. center is width / 2
-        audioSliderView.leftAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.leftAnchor, constant: 40).isActive = true
+        audioSliderView.centerXAnchor.constraint(equalTo: self.likeBtn.centerXAnchor, constant: 0).isActive = true
         
         //audio slider
         audioSlider = UISlider()
         audioSlider.maximumValue = 1
         audioSlider.minimumValue = 0
-        audioSlider.value = 0.5
+        audioSlider.value = 0.75
         audioSlider.addTarget(self, action: #selector(sliderValueDidChange(_:)), for: .valueChanged)
         audioSlider.translatesAutoresizingMaskIntoConstraints = false
         audioSlider.tag = 1
@@ -256,8 +341,8 @@ class MindfulnessViewController: UIViewController {
         self.controlView?.addSubview(seekerSlider)
         
         seekerSlider.topAnchor.constraint(equalTo: self.playPauseBtn.bottomAnchor, constant: 130).isActive = true
-        seekerSlider.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -64).isActive = true
-        seekerSlider.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 64).isActive = true
+        seekerSlider.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -24).isActive = true
+        seekerSlider.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 24).isActive = true
         
         seekerSlider.heightAnchor.constraint(equalToConstant: 20).isActive = true
         seekerSlider.addTarget(self, action: #selector(sliderValueDidChange(_:)), for: .valueChanged)
@@ -292,32 +377,7 @@ class MindfulnessViewController: UIViewController {
         audioSliderBottomIcon.heightAnchor.constraint(equalToConstant: 25).isActive = true
         audioSliderBottomIcon.contentMode = .scaleAspectFit
         
-        
-        likeBtn.translatesAutoresizingMaskIntoConstraints = false
-        likeBtn.tintColor = .black
-        likeBtn.setImage(UIImage(named: "like_lighter"), for: .normal)
-        likeBtn.setImage(UIImage(named: "likefilled_lighter"), for: .selected)
-        likeBtn.backgroundColor = .clear
-        likeBtn.setTitle("", for: .normal)
-        self.controlView.addSubview(likeBtn)
-        likeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
-        likeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
-        likeBtn.addTarget(self, action: #selector(setLikeClick(_:)), for: .touchUpInside)
-        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
-        likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 16).isActive = true
-
-        
-        let closeBtn = UIButton()
-        closeBtn.translatesAutoresizingMaskIntoConstraints = false
-        closeBtn.setImage(UIImage(named: "close_lighter"), for: .normal)
-        closeBtn.backgroundColor = .clear
-        closeBtn.setTitle("", for: .normal)
-        self.controlView.addSubview(closeBtn)
-        closeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
-        closeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
-        closeBtn.addTarget(self, action: #selector(closeClick), for: .touchUpInside)
-        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
-        closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -16).isActive = true
+       
         
         let tap = UITapGestureRecognizer(target: self, action: #selector(hideShowControls))
         self.controlView.addGestureRecognizer(tap)
@@ -350,6 +410,9 @@ class MindfulnessViewController: UIViewController {
         dummySwipeDown.direction = .down
         dummySwipeDown.cancelsTouchesInView = true
         audioSliderView.addGestureRecognizer(dummySwipeDown)
+        
+        
+       
     }
 
     @objc func touchedUp() {
@@ -368,13 +431,15 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter audioArray: Array of string with background audio url
     /// - Parameter audioVoiceURL:String to the narration audio
     /// - Parameter subtitleURL:String to the subtitles file (.srt)
+    /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleURL:String, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleURL:String, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
         self.isMindfullness = true
+        self.splashImage = UIImage(data: splashImage)
         self.createScreen()
         
         self.likeBtn.isSelected = isLiked
@@ -390,6 +455,7 @@ class MindfulnessViewController: UIViewController {
         let playerItem = AVPlayerItem(url: URL(string: videoArray[0])!)
         playerItem.preferredForwardBufferDuration = TimeInterval(30)
         mainVideo = AVQueuePlayer(items: [playerItem])
+        mainVideo.automaticallyWaitsToMinimizeStalling = true
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         let playerAudioItem = AVPlayerItem(url: URL(string: audioArray[0])!)
         mainAudio = AVQueuePlayer(items: [playerAudioItem])
@@ -400,27 +466,27 @@ class MindfulnessViewController: UIViewController {
         //video player
         playerLayer = AVPlayerLayer(player: mainVideo)
         playerLayer?.videoGravity = .resizeAspectFill;
-        self.view.layer.addSublayer(playerLayer!)
+        self.videoView.layer.addSublayer(playerLayer!)
         
         //MARK: Second player setup
         if videoArray.count > 1 && audioArray.count > 1 {
             let pi2 = AVPlayerItem(url: URL(string: videoArray[1])!)
             pi2.preferredForwardBufferDuration = TimeInterval(30)
             secondVideo = AVQueuePlayer(items: [pi2])
-            secondVideoLooper = AVPlayerLooper(player: secondVideo, templateItem: pi2)
+            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
             let pai2 = AVPlayerItem(url: URL(string: audioArray[1])!)
             secondAudio = AVQueuePlayer(items: [pai2])
             secondAudioLooper = AVPlayerLooper(player: secondAudio, templateItem: pai2)
             
-            secondVideo.automaticallyWaitsToMinimizeStalling = true
-            secondVideo.volume = 0
+            secondVideo?.automaticallyWaitsToMinimizeStalling = true
+            secondVideo?.volume = 0
             secondAudio.automaticallyWaitsToMinimizeStalling = true
             
             //second video player
             playerLayer2 = AVPlayerLayer(player: secondVideo)
             playerLayer2?.isHidden = true
             playerLayer2?.videoGravity = .resizeAspectFill;
-            self.view.layer.addSublayer(playerLayer2!)
+            self.videoView?.layer.addSublayer(playerLayer2!)
             
         }
         
@@ -430,20 +496,20 @@ class MindfulnessViewController: UIViewController {
             let pi3 = AVPlayerItem(url: URL(string: videoArray[2])!)
             pi3.preferredForwardBufferDuration = TimeInterval(30)
             thirdVideo = AVQueuePlayer(items: [pi3])
-            thirdVideoLooper = AVPlayerLooper(player: thirdVideo, templateItem: pi3)
+            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
             let pai3 = AVPlayerItem(url: URL(string: audioArray[2])!)
             thirdAudio = AVQueuePlayer(items: [pai3])
             thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
 
-            thirdVideo.automaticallyWaitsToMinimizeStalling = false
-            thirdVideo.volume = 0
-            thirdAudio.automaticallyWaitsToMinimizeStalling = false
+            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
+            thirdVideo?.volume = 0
+            thirdAudio.automaticallyWaitsToMinimizeStalling = true
             
             //third video player
             playerLayer3 = AVPlayerLayer(player: thirdVideo)
             playerLayer3?.isHidden = true
             playerLayer3?.videoGravity = .resizeAspectFill;
-            self.view.layer.addSublayer(playerLayer3!)
+            self.videoView?.layer.addSublayer(playerLayer3!)
         }
        
         self.view.bringSubviewToFront(self.controlView)
@@ -473,11 +539,12 @@ class MindfulnessViewController: UIViewController {
         }
 
         audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        
+      
         //MARK: Subtitle setup
         if let subUrl = URL(string:subtitleURL) {
             self.addSubtitles().open(fileFromRemote: subUrl, player: audioVoice)
         }
+      
     }
     
     /// Loads videos passed in params from Data.
@@ -488,13 +555,15 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter audioArray: Array of data with background audio url
     /// - Parameter audioVoiceData:Data to the narration audio
     /// - Parameter subtitleData:Data to the subtitles file (.srt)
+    /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
         self.isMindfullness = true
+        self.splashImage = UIImage(data: splashImage)
         self.createScreen()
         
         self.likeBtn.isSelected = isLiked
@@ -516,6 +585,7 @@ class MindfulnessViewController: UIViewController {
         mainVideo = AVQueuePlayer(items: [playerItem])
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         mainVideo.volume = 0
+        mainVideo.automaticallyWaitsToMinimizeStalling = true
         let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainaudio.mp3")
         let playerAudioItem = AVPlayerItem(url: urlAudio)
         mainAudio = AVQueuePlayer(items: [playerAudioItem])
@@ -525,7 +595,7 @@ class MindfulnessViewController: UIViewController {
         //video player
         playerLayer = AVPlayerLayer(player: mainVideo)
         playerLayer?.videoGravity = .resizeAspectFill;
-        self.view.layer.addSublayer(playerLayer!)
+        self.videoView?.layer.addSublayer(playerLayer!)
        
         
         //MARK: Second player setup
@@ -536,15 +606,15 @@ class MindfulnessViewController: UIViewController {
             let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondvideo.mp4")
             let pi2 = AVPlayerItem(url: urlVideo)
             secondVideo = AVQueuePlayer(items: [pi2])
-            secondVideoLooper = AVPlayerLooper(player: secondVideo, templateItem: pi2)
-            secondVideo.automaticallyWaitsToMinimizeStalling = true
-            secondVideo.volume = 0
+            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
+            secondVideo?.automaticallyWaitsToMinimizeStalling = true
+            secondVideo?.volume = 0
             
             //second video player
             playerLayer2 = AVPlayerLayer(player: secondVideo)
             playerLayer2?.isHidden = true
             playerLayer2?.videoGravity = .resizeAspectFill;
-            self.view.layer.addSublayer(playerLayer2!)
+            self.videoView.layer.addSublayer(playerLayer2!)
             
             let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondaudio.mp3")
             let pai2 = AVPlayerItem(url: urlAudio)
@@ -562,21 +632,21 @@ class MindfulnessViewController: UIViewController {
             let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdvideo.mp4")
             let pi3 = AVPlayerItem(url: urlVideo)
             thirdVideo = AVQueuePlayer(items: [pi3])
-            thirdVideoLooper = AVPlayerLooper(player: thirdVideo, templateItem: pi3)
-            thirdVideo.automaticallyWaitsToMinimizeStalling = false
-            thirdVideo.volume = 0
+            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
+            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
+            thirdVideo?.volume = 0
             
             //third video player
             playerLayer3 = AVPlayerLayer(player: thirdVideo)
             playerLayer3?.isHidden = true
             playerLayer3?.videoGravity = .resizeAspectFill;
-            self.view.layer.addSublayer(playerLayer3!)
+            self.videoView.layer.addSublayer(playerLayer3!)
             
             let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdaudio.mp3")
             let pai3 = AVPlayerItem(url: urlAudio)
             thirdAudio = AVQueuePlayer(items: [pai3])
             thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
-            thirdAudio.automaticallyWaitsToMinimizeStalling = false
+            thirdAudio.automaticallyWaitsToMinimizeStalling = true
             
         }
 
@@ -588,7 +658,7 @@ class MindfulnessViewController: UIViewController {
         audioVoice = AVPlayer(url: urlAudioVoice)
         
         
-        audioVoice.automaticallyWaitsToMinimizeStalling = false
+        audioVoice.automaticallyWaitsToMinimizeStalling = true
 
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
@@ -609,7 +679,7 @@ class MindfulnessViewController: UIViewController {
         }
 
         audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-
+        
 //        //MARK: Subtitle setup
 
         self.addSubtitles().open(fromData: subtitleData, player: audioVoice)
@@ -622,13 +692,15 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter audioArray: Array of string with background audio url
     /// - Parameter audioVoiceURL:String to the narration audio
     /// - Parameter subtitleURL:String to the subtitles file (.srt)
+    /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromURL(backgroundVideoURL:String, audioArray:[String], audioVoiceURL:String, subtitleURL:String, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromURL(backgroundVideoURL:String, audioArray:[String], audioVoiceURL:String, subtitleURL:String, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
         self.isMindfullness = false
+        self.splashImage = UIImage(data: splashImage)
         self.createScreen()
         
         self.likeBtn.isSelected = isLiked
@@ -644,6 +716,7 @@ class MindfulnessViewController: UIViewController {
         let playerItem = AVPlayerItem(url: URL(string: backgroundVideoURL)!)
         playerItem.preferredForwardBufferDuration = TimeInterval(30)
         mainVideo = AVQueuePlayer(items: [playerItem])
+        mainVideo.automaticallyWaitsToMinimizeStalling = true
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         let playerAudioItem = AVPlayerItem(url: URL(string: audioArray[0])!)
         mainAudio = AVQueuePlayer(items: [playerAudioItem])
@@ -654,7 +727,7 @@ class MindfulnessViewController: UIViewController {
         //video player
         playerLayer = AVPlayerLayer(player: mainVideo)
         playerLayer?.videoGravity = .resizeAspectFill;
-        self.view.layer.addSublayer(playerLayer!)
+        self.videoView.layer.addSublayer(playerLayer!)
         
         //MARK: Second player setup
         if audioArray.count > 1 {
@@ -673,7 +746,7 @@ class MindfulnessViewController: UIViewController {
             thirdAudio = AVQueuePlayer(items: [pai3])
             thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
 
-            thirdAudio.automaticallyWaitsToMinimizeStalling = false
+            thirdAudio.automaticallyWaitsToMinimizeStalling = true
             
         }
        
@@ -704,7 +777,7 @@ class MindfulnessViewController: UIViewController {
         }
 
         audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        
+       
         //MARK: Subtitle setup
         if let subUrl = URL(string:subtitleURL) {
             self.addSubtitles().open(fileFromRemote: subUrl, player: audioVoice)
@@ -718,15 +791,16 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter audioArray: Array of data with background audio url
     /// - Parameter audioVoiceData:Data to the narration audio
     /// - Parameter subtitleData:Data to the subtitles file (.srt)
+    /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromData(backgroundVideoData:Data, audioArray:[Data], audioVoiceData:Data, subtitleData:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromData(backgroundVideoData:Data, audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.watchedTime = 0
-        self.isMindfullness = true
         self.createScreen()
         self.isMindfullness = false
+        self.splashImage = UIImage(data: splashImage)
         self.likeBtn.isSelected = isLiked
         
         self.maxVideos = audioArray.count
@@ -746,6 +820,7 @@ class MindfulnessViewController: UIViewController {
         mainVideo = AVQueuePlayer(items: [playerItem])
         mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
         mainVideo.volume = 0
+        mainVideo.automaticallyWaitsToMinimizeStalling = true
         let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainaudio.mp3")
         let playerAudioItem = AVPlayerItem(url: urlAudio)
         mainAudio = AVQueuePlayer(items: [playerAudioItem])
@@ -755,7 +830,7 @@ class MindfulnessViewController: UIViewController {
         //video player
         playerLayer = AVPlayerLayer(player: mainVideo)
         playerLayer?.videoGravity = .resizeAspectFill;
-        self.view.layer.addSublayer(playerLayer!)
+        self.videoView.layer.addSublayer(playerLayer!)
        
         
         //MARK: Second player setup
@@ -778,7 +853,7 @@ class MindfulnessViewController: UIViewController {
             let pai3 = AVPlayerItem(url: urlAudio)
             thirdAudio = AVQueuePlayer(items: [pai3])
             thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
-            thirdAudio.automaticallyWaitsToMinimizeStalling = false
+            thirdAudio.automaticallyWaitsToMinimizeStalling = true
             
         }
 
@@ -790,7 +865,7 @@ class MindfulnessViewController: UIViewController {
         audioVoice = AVPlayer(url: urlAudioVoice)
         
         
-        audioVoice.automaticallyWaitsToMinimizeStalling = false
+        audioVoice.automaticallyWaitsToMinimizeStalling = true
 
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
@@ -811,7 +886,7 @@ class MindfulnessViewController: UIViewController {
         }
 
         audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-
+       
 //        //MARK: Subtitle setup
 
         self.addSubtitles().open(fromData: subtitleData, player: audioVoice)
@@ -825,14 +900,14 @@ class MindfulnessViewController: UIViewController {
         skipBtn?.setTitle("Skip intro", for: .normal)
         skipBtn?.setTitleColor(.white, for: .normal)
         skipBtn?.widthAnchor.constraint(equalToConstant: 80).isActive = true
-        skipBtn?.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        skipBtn?.heightAnchor.constraint(equalToConstant: 36).isActive = true
         skipBtn?.titleLabel?.font = UIFont(name: "Biryani-Bold", size: 12)
         skipBtn?.addTarget(self, action: #selector(skipIntro(sender:)), for: .touchUpInside)
         self.controlView.addSubview(skipBtn!)
         skipBtn?.centerYAnchor.constraint(equalTo: self.subtitleSwitch.centerYAnchor).isActive = true
         skipBtn?.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 32).isActive = true
-        skipBtn?.contentEdgeInsets = UIEdgeInsets(top: 0, left: 8, bottom: 0, right: 8)
-        skipBtn?.layer.cornerRadius = 20
+        skipBtn?.contentEdgeInsets = UIEdgeInsets(top: 1, left: 0, bottom: -1, right: 0)
+        skipBtn?.layer.cornerRadius = 18
         skipBtn?.layer.borderWidth = 1
         skipBtn?.layer.borderColor = UIColor.white.cgColor
     
@@ -1068,11 +1143,9 @@ class MindfulnessViewController: UIViewController {
           }
 
         
-        if keyPath == #keyPath(AVPlayerItem.status) {
-            let player = (object as? AVPlayer)
-           
+        if keyPath == #keyPath(AVPlayerItem.status), let player = (object as? AVPlayer) {
               // Switch over status value
-            switch player?.status {
+            switch player.status {
               case .readyToPlay:
                 if player == audioVoice {
                     print("a")
@@ -1093,13 +1166,11 @@ class MindfulnessViewController: UIViewController {
                 break
               case .unknown:
                 break
-            case .none:
-                break
             @unknown default:
                 break
               }
-        } 
-       
+        }
+      
     }
     
     func play(shoudHide5Sec:Bool = false) {
@@ -1129,13 +1200,60 @@ class MindfulnessViewController: UIViewController {
         self.showControls()
     }
     
+    @objc func appDidEnterBackground() {
+       // self.pause()
+               
+        playerLayer?.removeFromSuperlayer()
+        playerLayer2?.removeFromSuperlayer()
+        playerLayer3?.removeFromSuperlayer()
+        
+        self.playerLayer = nil
+        self.playerLayer2 = nil
+        self.playerLayer3 = nil
+    }
+    @objc func appDidEnterForeground() {
+        
+        
+        self.playerLayer = AVPlayerLayer(player: self.mainVideo)
+        self.playerLayer?.isHidden = true
+        self.playerLayer?.videoGravity = .resizeAspectFill;
+        self.videoView?.layer.addSublayer(self.playerLayer!)
+        
+        if self.secondVideo != nil {
+            self.playerLayer2 = AVPlayerLayer(player: self.secondVideo)
+            self.playerLayer2?.isHidden = true
+            self.playerLayer2?.videoGravity = .resizeAspectFill;
+            self.videoView?.layer.addSublayer(self.playerLayer2!)
+        }
+       
+        if self.thirdVideo != nil {
+            self.playerLayer3 = AVPlayerLayer(player: self.thirdVideo)
+            self.playerLayer3?.isHidden = true
+            self.playerLayer3?.videoGravity = .resizeAspectFill;
+            self.videoView?.layer.addSublayer(self.playerLayer3!)
+        }
+        self.viewDidLayoutSubviews()
+    
+
+        if self.isMindfullness {
+            self.switchVideo()
+        }
+        else if !self.isMindfullness {
+            self.switchAudio()
+        }
+    
+        if self.playPauseBtn.isSelected {
+            self.playBackground()
+        }
+
+    }
     @objc func playBackground(){
         DispatchQueue.main.async {
             self.mainVideo.play()
             self.mainAudio.play()
-            self.secondVideo.play()
+            self.secondVideo?.play()
             self.secondAudio.play()
-            self.thirdVideo.play()
+            self.thirdVideo?.play()
             self.thirdAudio.play()
             
             if self.isMindfullness {
@@ -1151,9 +1269,9 @@ class MindfulnessViewController: UIViewController {
     func stopBackground(){
         self.mainVideo.pause()
         self.mainAudio.pause()
-        self.secondVideo.pause()
+        self.secondVideo?.pause()
         self.secondAudio.pause()
-        self.thirdVideo.pause()
+        self.thirdVideo?.pause()
         self.thirdAudio.pause()
     }
     
@@ -1223,6 +1341,25 @@ class MindfulnessViewController: UIViewController {
             audioVoice.seek(to: time)
             self.watchedTime = self.secondsToSkip
         }
+    }
+    func colorFromHexString(_ hexString:String) -> UIColor{
+        
+        var hexStr = hexString.trimmingCharacters(in: .whitespacesAndNewlines)
+       
+        var rgbColor:UInt64 = 0
+        
+        if hexStr.hasPrefix("#"){
+            hexStr.removeFirst()
+        }
+        if hexStr.count == 8 {
+            hexStr.removeFirst(2)
+        }
+        let scanner = Scanner(string: hexStr)
+        scanner.scanHexInt64(&rgbColor)
+        
+        return UIColor.init(red: CGFloat(((rgbColor & 0xFF0000) >> 16))/CGFloat(255.0), green: CGFloat(((rgbColor & 0x00FF00) >> 8))/CGFloat(255.0), blue: CGFloat((rgbColor & 0x0000FF))/CGFloat(255.0), alpha: 1.0)
+        
+        
     }
 }
 
