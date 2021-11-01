@@ -13,13 +13,20 @@ import Foundation
     func loadMindfullness(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let videoArray = command.arguments[0] as? [String], let audioArray = command.arguments[1] as? [String], let audioVoiceURL = command.arguments[2] as? String, let subtitleURL = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURL = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+            
+            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
+            }
             
             let playerViewController = MindfulnessViewController()
             playerViewController.loadMindfullnessVideosFromURL(videoArray:  videoArray,
                                                                audioArray: audioArray,
                                                                audioVoiceURL: audioVoiceURL,
                                                                subtitleURL: subtitleURL,
+                                                               splashImage: splashImageData,
                                                                secondsToSkip: secondsToSkip,
                                                                isLiked: isLiked)
             { watchedTime, isLiked in
@@ -52,13 +59,20 @@ import Foundation
     func loadBreathwork(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let backgroundVideoURL = command.arguments[0] as? String, let audioArray = command.arguments[1] as? [String], let audioVoiceURL = command.arguments[2] as? String, let subtitleURL = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURL = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+            
+            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
+            }
             
             let playerViewController = MindfulnessViewController()
             playerViewController.loadBreathworkVideosFromURL(backgroundVideoURL:  backgroundVideoURL,
                                                              audioArray: audioArray,
                                                              audioVoiceURL: audioVoiceURL,
                                                              subtitleURL: subtitleURL,
+                                                             splashImage: splashImageData,
                                                              secondsToSkip: secondsToSkip,
                                                              isLiked: isLiked)
             { watchedTime, isLiked in
@@ -90,10 +104,20 @@ import Foundation
     func loadDeskercises(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let videoArrayURL = command.arguments[0] as? [String], let videoArrayTitle = command.arguments[1] as? [String], let liked = command.arguments[2] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let videoArrayURL = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
+            
+            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
+            }
             
             let playerViewController = DeskercisesViewController()
-            playerViewController.loadDeskercisesVideosFromURL(videoArray: videoArrayURL, videoTitleArray: videoArrayTitle, isLiked: liked, callback: { (isLiked) in
+            playerViewController.loadDeskercisesVideosFromURL(videoArray: videoArrayURL,
+                                                              videoTitleArray: videoArrayTitle,
+                                                              splashImage: splashImageData,
+                                                              isLiked: liked,
+                                                              callback: { (isLiked) in
                 playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
@@ -122,7 +146,13 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let videoArray = command.arguments[0] as? [String], let audioArray = command.arguments[1] as? [String], let voice = command.arguments[2] as? String, let subtitle = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let voice = command.arguments[3] as? String, let subtitle = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+            
+            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
+            }
             
             var videoDataArray = [Data]()
             //Loads local Video files into array as Data Objects
@@ -220,7 +250,7 @@ import Foundation
             playerViewController.loadMindfullnessVideosFromData(videoArray:  videoDataArray,
                                                                 audioArray: audioDataArray,
                                                                 audioVoiceData: voiceData,
-                                                                subtitleData: subtitleData,
+                                                                subtitleData: subtitleData,    splashImage: splashImageData,
                                                                 secondsToSkip: secondsToSkip,
                                                                 isLiked: isLiked)
             { watchedTime, isLiked in
@@ -252,7 +282,13 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let backgroundVideoFile = command.arguments[0] as? String, let audioArray = command.arguments[1] as? [String], let audioVoiceFile = command.arguments[2] as? String, let subtitleFile = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoFile = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceFile = command.arguments[3] as? String, let subtitleFile = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+            
+            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
+            }
             
             var backgroundVideoData = Data()
             let backgroundVideoURL: URL = {
@@ -349,6 +385,7 @@ import Foundation
                                                               audioArray: audioDataArray,
                                                               audioVoiceData: voiceData,
                                                               subtitleData: subtitleData,
+                                                              splashImage: splashImageData,
                                                               secondsToSkip: secondsToSkip,
                                                               isLiked: isLiked)
             { watchedTime, isLiked in
@@ -381,7 +418,13 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let videoFilesArray = command.arguments[0] as? [String], let videoArrayTitle = command.arguments[1] as? [String], let liked = command.arguments[2] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let videoFilesArray = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
+            
+            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
+            }
             
             var videoDataArray = [Data]()
             //Loads local Video files into array as Data Objects
@@ -412,6 +455,7 @@ import Foundation
             let playerViewController = DeskercisesViewController()
             playerViewController.loadDeskercisesVideosFromData(videoArray: videoDataArray,
                                                                videoTitleArray: videoArrayTitle,
+                                                               splashImage: splashImageData,
                                                                isLiked: liked)
             { isLiked in
                 playerViewController.dismiss(animated: false, completion: nil)
@@ -434,6 +478,16 @@ import Foundation
         } else {
             pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Missing input parameters")
             self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+        }
+    }
+    
+    func convertBase64ToData(base64String: String) -> Data? {
+        if let data = Data(base64Encoded: base64String) {
+            return data
+        }
+        else {
+            //empty Data to be tested in the caller side
+            return nil
         }
     }
 }
