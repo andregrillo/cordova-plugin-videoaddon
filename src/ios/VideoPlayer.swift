@@ -30,6 +30,7 @@ import Foundation
                                                                secondsToSkip: secondsToSkip,
                                                                isLiked: isLiked)
             { watchedTime, isLiked in
+                playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
@@ -76,6 +77,7 @@ import Foundation
                                                              secondsToSkip: secondsToSkip,
                                                              isLiked: isLiked)
             { watchedTime, isLiked in
+                playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
@@ -118,6 +120,7 @@ import Foundation
                                                               splashImage: splashImageData,
                                                               isLiked: liked,
                                                               callback: { (isLiked) in
+                playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
@@ -254,6 +257,7 @@ import Foundation
                                                                 secondsToSkip: secondsToSkip,
                                                                 isLiked: isLiked)
             { watchedTime, isLiked in
+                playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
@@ -389,6 +393,7 @@ import Foundation
                                                               secondsToSkip: secondsToSkip,
                                                               isLiked: isLiked)
             { watchedTime, isLiked in
+                playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
@@ -458,6 +463,7 @@ import Foundation
                                                                splashImage: splashImageData,
                                                                isLiked: liked)
             { isLiked in
+                playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
                 let returnDictionary = ["isLiked": isLiked]
                 if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
