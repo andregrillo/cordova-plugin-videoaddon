@@ -26,6 +26,8 @@ class DeskercisesViewController: UIViewController {
 
     private var callback:((Bool)->())?
 
+    private var videoArray:[String]?
+    
     private var currentBackgroundVideoIndex = 0
     private  var maxVideos = 0
    
@@ -38,7 +40,8 @@ class DeskercisesViewController: UIViewController {
     private var gifTimer:Timer?
     private var currentGifIndex = 0
     private var maxGifIndex = 40
-    private var splashImage: UIImage?
+    private var splashImage = [UIImage]()
+    private var splashView:UIImageView?
     
     private var labelBgView:UIView!
     private var topLabel:UILabel!
@@ -49,6 +52,8 @@ class DeskercisesViewController: UIViewController {
     
     private var arrowTimer:Timer?
     private var animationIndex = 0
+    
+    private var isStreaming:Bool = true
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -75,13 +80,13 @@ class DeskercisesViewController: UIViewController {
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
         
-        gifTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true, block: { (_) in
-            self.currentGifIndex = (self.currentGifIndex + 1) % self.maxGifIndex
-            DispatchQueue.main.async {
-                self.gifView?.image = UIImage(named: "Loader\(self.currentGifIndex)")
-            }
-            
-        })
+//        gifTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true, block: { (_) in
+//            self.currentGifIndex = (self.currentGifIndex + 1) % self.maxGifIndex
+//            DispatchQueue.main.async {
+//                self.gifView?.image = UIImage(named: "Loader\(self.currentGifIndex)")
+//            }
+//
+//        })
         
     }
     override func viewDidDisappear(_ animated: Bool) {
@@ -104,24 +109,24 @@ class DeskercisesViewController: UIViewController {
         NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1, constant: 0).isActive = true
         NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1, constant: 0).isActive = true
         
-        let splashView = UIImageView(image: splashImage)
-        splashView.translatesAutoresizingMaskIntoConstraints = false
-        splashView.contentMode = .scaleAspectFill
-        self.loadingView.addSubview(splashView)
+        splashView = UIImageView(image: splashImage[self.currentBackgroundVideoIndex])
+        splashView?.translatesAutoresizingMaskIntoConstraints = false
+        splashView?.contentMode = .scaleAspectFill
+        self.loadingView.addSubview(splashView!)
 
-        splashView.topAnchor.constraint(equalTo: self.loadingView.topAnchor, constant: 0).isActive = true
-        splashView.leftAnchor.constraint(equalTo: self.loadingView.leftAnchor, constant: 0).isActive = true
-        splashView.rightAnchor.constraint(equalTo: self.loadingView.rightAnchor, constant: 0).isActive = true
-        splashView.bottomAnchor.constraint(equalTo: self.loadingView.bottomAnchor, constant: 0).isActive = true
+        splashView?.topAnchor.constraint(equalTo: self.loadingView.topAnchor, constant: 0).isActive = true
+        splashView?.leftAnchor.constraint(equalTo: self.loadingView.leftAnchor, constant: 0).isActive = true
+        splashView?.rightAnchor.constraint(equalTo: self.loadingView.rightAnchor, constant: 0).isActive = true
+        splashView?.bottomAnchor.constraint(equalTo: self.loadingView.bottomAnchor, constant: 0).isActive = true
   
-        gifView = UIImageView(image: UIImage(named: "Loader0"))
-        gifView?.translatesAutoresizingMaskIntoConstraints = false
-        gifView?.contentMode = .scaleAspectFit
-        loadingView.addSubview(gifView!)
-        gifView?.centerXAnchor.constraint(equalTo: self.loadingView.centerXAnchor, constant: 0).isActive = true
-        gifView?.centerYAnchor.constraint(equalTo: self.loadingView.centerYAnchor, constant: 0).isActive = true
-        gifView?.widthAnchor.constraint(equalToConstant: 150).isActive = true
-        gifView?.heightAnchor.constraint(equalToConstant: 150).isActive = true
+//        gifView = UIImageView(image: UIImage(named: "Loader0"))
+//        gifView?.translatesAutoresizingMaskIntoConstraints = false
+//        gifView?.contentMode = .scaleAspectFit
+//        loadingView.addSubview(gifView!)
+//        gifView?.centerXAnchor.constraint(equalTo: self.loadingView.centerXAnchor, constant: 0).isActive = true
+//        gifView?.centerYAnchor.constraint(equalTo: self.loadingView.centerYAnchor, constant: 0).isActive = true
+//        gifView?.widthAnchor.constraint(equalToConstant: 150).isActive = true
+//        gifView?.heightAnchor.constraint(equalToConstant: 150).isActive = true
         
         self.videoView = UIView()
         videoView?.translatesAutoresizingMaskIntoConstraints = false
@@ -154,9 +159,8 @@ class DeskercisesViewController: UIViewController {
         likeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.addTarget(self, action: #selector(setLikeClick(_:)), for: .touchUpInside)
-        likeBtn.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
-        likeBtn.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16).isActive = true
-
+        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 17).isActive = true
+        likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 26).isActive = true
         
         let closeBtn = UIButton()
         closeBtn.translatesAutoresizingMaskIntoConstraints = false
@@ -167,8 +171,8 @@ class DeskercisesViewController: UIViewController {
         closeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.addTarget(self, action: #selector(closeClick), for: .touchUpInside)
-        closeBtn.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
-        closeBtn.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16).isActive = true
+        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 17).isActive = true
+        closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -26).isActive = true
         
         
         labelBgView = UIView()
@@ -180,7 +184,7 @@ class DeskercisesViewController: UIViewController {
         topLabel.translatesAutoresizingMaskIntoConstraints = false
         topLabel.textColor = .white
         topLabel.text = ""
-        topLabel.font = UIFont(name: "Biryani-Bold", size: 12)
+        topLabel.font = UIFont(name: "Biryani-SemiBold", size: 12)
         topLabel.minimumScaleFactor = 0.1
         topLabel.adjustsFontSizeToFitWidth = true
         self.controlView.addSubview(topLabel)
@@ -199,15 +203,15 @@ class DeskercisesViewController: UIViewController {
         
         let swipeLabel = UILabel()
         swipeLabel.translatesAutoresizingMaskIntoConstraints = false
-        swipeLabel.font = UIFont(name: "Biryani-Bold", size: 14)
+        swipeLabel.font = UIFont(name: "Biryani-SemiBold", size: 16)
         swipeLabel.textColor = .white
         swipeLabel.text = "Swipe for next activity"
 
         self.controlView.addSubview(swipeLabel)
         swipeLabel.leadingAnchor.constraint(greaterThanOrEqualTo: self.view.leadingAnchor ,constant:  16).isActive = true
         swipeLabel.trailingAnchor.constraint(lessThanOrEqualTo: self.view.trailingAnchor ,constant:  -16).isActive = true
-        swipeLabel.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -16).isActive = true
-        swipeLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: -15).isActive = true
+        swipeLabel.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: -5).isActive = true
+        swipeLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor, constant: -6).isActive = true
         
         swipeIcon = UIImageView()
         swipeIcon.translatesAutoresizingMaskIntoConstraints = false
@@ -215,10 +219,10 @@ class DeskercisesViewController: UIViewController {
         swipeIcon.tintColor = .white
         swipeIcon.contentMode = .scaleAspectFit
         self.controlView.addSubview(swipeIcon)
-        swipeIcon.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor).isActive = true
+        swipeIcon.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor,constant: -2).isActive = true
         swipeIcon.leadingAnchor.constraint(equalTo: swipeLabel.trailingAnchor ,constant:  8).isActive = true
-        swipeIcon.widthAnchor.constraint(equalToConstant: 15).isActive = true
-        swipeIcon.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        swipeIcon.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        swipeIcon.heightAnchor.constraint(equalToConstant: 10).isActive = true
         
         swipeIcon2 = UIImageView()
         swipeIcon2.translatesAutoresizingMaskIntoConstraints = false
@@ -226,10 +230,10 @@ class DeskercisesViewController: UIViewController {
         swipeIcon2.tintColor = .white
         swipeIcon2.contentMode = .scaleAspectFit
         self.controlView.addSubview(swipeIcon2)
-        swipeIcon2.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor).isActive = true
-        swipeIcon2.leadingAnchor.constraint(equalTo: swipeIcon.trailingAnchor ,constant:  -8).isActive = true
-        swipeIcon2.widthAnchor.constraint(equalToConstant: 15).isActive = true
-        swipeIcon2.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        swipeIcon2.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor, constant: -2).isActive = true
+        swipeIcon2.leadingAnchor.constraint(equalTo: swipeIcon.trailingAnchor ,constant:  -4).isActive = true
+        swipeIcon2.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        swipeIcon2.heightAnchor.constraint(equalToConstant: 10).isActive = true
         
         swipeIcon3 = UIImageView()
         swipeIcon3.translatesAutoresizingMaskIntoConstraints = false
@@ -237,10 +241,10 @@ class DeskercisesViewController: UIViewController {
         swipeIcon3.tintColor = .white
         swipeIcon3.contentMode = .scaleAspectFit
         self.controlView.addSubview(swipeIcon3)
-        swipeIcon3.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor).isActive = true
-        swipeIcon3.leadingAnchor.constraint(equalTo: swipeIcon2.trailingAnchor ,constant:  -8).isActive = true
-        swipeIcon3.widthAnchor.constraint(equalToConstant: 15).isActive = true
-        swipeIcon3.heightAnchor.constraint(equalToConstant: 15).isActive = true
+        swipeIcon3.centerYAnchor.constraint(equalTo: swipeLabel.centerYAnchor, constant: -2).isActive = true
+        swipeIcon3.leadingAnchor.constraint(equalTo: swipeIcon2.trailingAnchor ,constant:  -4).isActive = true
+        swipeIcon3.widthAnchor.constraint(equalToConstant: 10).isActive = true
+        swipeIcon3.heightAnchor.constraint(equalToConstant: 10).isActive = true
         
         
         arrowTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true, block: { (_) in
@@ -303,10 +307,13 @@ class DeskercisesViewController: UIViewController {
     /// - Parameter videoTitleArray: Array of string with video titles
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 1 params (Bool) meaning (isLiked)
-    func loadDeskercisesVideosFromURL(videoArray:[String], videoTitleArray:[String], splashImage:Data, isLiked:Bool, callback:@escaping ((Bool)->())) {
+    func loadDeskercisesVideosFromURL(videoArray:[String], videoTitleArray:[String], splashImageArr:[Data], isLiked:Bool, callback:@escaping ((Bool)->())) {
         self.callback = callback
+        self.videoArray = videoArray
         self.videoTitleArray = videoTitleArray
-        self.splashImage = UIImage(data: splashImage)
+        for splash in splashImageArr {
+            self.splashImage.append(UIImage(data: splash) ?? UIImage())
+        }
         self.createScreen()
         
         self.likeBtn.isSelected = isLiked
@@ -314,56 +321,9 @@ class DeskercisesViewController: UIViewController {
         self.maxVideos = videoArray.count
         self.topLabel.text = videoTitleArray[0] + " (1/\(videoTitleArray.count))"
         
+        self.loadBackgroundPlayers()
+        self.switchVideo()
       
-        //MARK: Main player setup
-        let playerItem = AVPlayerItem(url: URL(string: videoArray[0])!)
-        playerItem.preferredForwardBufferDuration = TimeInterval(30)
-        mainVideo = AVQueuePlayer(items: [playerItem])
-        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
-        mainVideo.volume = 1
-        mainVideo.automaticallyWaitsToMinimizeStalling = true
-        //video player
-        playerLayer = AVPlayerLayer(player: mainVideo)
-        playerLayer?.videoGravity = .resizeAspectFill;
-        self.videoView?.layer.addSublayer(playerLayer!)
-        
-        //MARK: Second player setup
-        if videoArray.count > 1 && videoTitleArray.count > 1 {
-            let pi2 = AVPlayerItem(url: URL(string: videoArray[1])!)
-            pi2.preferredForwardBufferDuration = TimeInterval(30)
-            secondVideo = AVQueuePlayer(items: [pi2])
-            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
-            
-            secondVideo?.automaticallyWaitsToMinimizeStalling = true
-            secondVideo?.volume = 1
-            
-            //second video player
-            playerLayer2 = AVPlayerLayer(player: secondVideo)
-            playerLayer2?.isHidden = true
-            playerLayer2?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(playerLayer2!)
-            
-        }
-        
-        //MARK: Third player setup
-        if videoArray.count > 2 && videoTitleArray.count > 2 {
-
-            let pi3 = AVPlayerItem(url: URL(string: videoArray[2])!)
-            pi3.preferredForwardBufferDuration = TimeInterval(30)
-            thirdVideo = AVQueuePlayer(items: [pi3])
-            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
-            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
-            thirdVideo?.volume = 0
-            
-            //third video player
-            playerLayer3 = AVPlayerLayer(player: thirdVideo)
-            playerLayer3?.isHidden = true
-            playerLayer3?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(playerLayer3!)
-        }
-        mainVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
         self.view.bringSubviewToFront(self.controlView)
     }
     
@@ -375,10 +335,13 @@ class DeskercisesViewController: UIViewController {
     /// - Parameter videoTitleArray: Array of string with video titles
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 1 params (Bool) meaning (isLiked)
-    func loadDeskercisesVideosFromData(videoArray:[Data], videoTitleArray:[String], splashImage:Data, isLiked:Bool, callback:@escaping ((Bool)->())) {
+    func loadDeskercisesVideosFromData(videoArray:[Data], videoTitleArray:[String], splashImageArr:[Data], isLiked:Bool, callback:@escaping ((Bool)->())) {
         self.callback = callback
         self.videoTitleArray = videoTitleArray
-        self.splashImage = UIImage(data: splashImage)
+        self.isStreaming = false
+        for splash in splashImageArr {
+            self.splashImage.append(UIImage(data: splash) ?? UIImage())
+        }
         self.createScreen()
         
         self.likeBtn.isSelected = isLiked
@@ -447,6 +410,58 @@ class DeskercisesViewController: UIViewController {
         self.view.bringSubviewToFront(self.controlView)
     }
     
+    private func loadBackgroundPlayers() {
+        //MARK: Main player setup
+        let playerItem = AVPlayerItem(url: URL(string: videoArray![0])!)
+        playerItem.preferredForwardBufferDuration = TimeInterval(30)
+        mainVideo = AVQueuePlayer(items: [playerItem])
+        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
+        mainVideo.volume = 1
+        mainVideo.automaticallyWaitsToMinimizeStalling = true
+        //video player
+        playerLayer = AVPlayerLayer(player: mainVideo)
+        playerLayer?.videoGravity = .resizeAspectFill;
+        playerLayer?.isHidden = true
+        self.videoView?.layer.addSublayer(playerLayer!)
+        
+        //MARK: Second player setup
+        if videoArray!.count > 1 && videoTitleArray.count > 1 {
+            let pi2 = AVPlayerItem(url: URL(string: videoArray![1])!)
+            pi2.preferredForwardBufferDuration = TimeInterval(30)
+            secondVideo = AVQueuePlayer(items: [pi2])
+            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
+            
+            secondVideo?.automaticallyWaitsToMinimizeStalling = true
+            secondVideo?.volume = 1
+            
+            //second video player
+            playerLayer2 = AVPlayerLayer(player: secondVideo)
+            playerLayer2?.isHidden = true
+            playerLayer2?.videoGravity = .resizeAspectFill;
+            self.videoView?.layer.addSublayer(playerLayer2!)
+            
+        }
+        
+        //MARK: Third player setup
+        if videoArray!.count > 2 && videoTitleArray.count > 2 {
+
+            let pi3 = AVPlayerItem(url: URL(string: videoArray![2])!)
+            pi3.preferredForwardBufferDuration = TimeInterval(30)
+            thirdVideo = AVQueuePlayer(items: [pi3])
+            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
+            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
+            thirdVideo?.volume = 0
+            
+            //third video player
+            playerLayer3 = AVPlayerLayer(player: thirdVideo)
+            playerLayer3?.isHidden = true
+            playerLayer3?.videoGravity = .resizeAspectFill;
+            self.videoView?.layer.addSublayer(playerLayer3!)
+        }
+        mainVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+        secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+        thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+    }
     @objc func setLikeClick(_ sender:UIButton) {
         sender.isSelected = !sender.isSelected
     }
@@ -468,6 +483,7 @@ class DeskercisesViewController: UIViewController {
         print("swipe left")
         self.currentBackgroundVideoIndex = (self.currentBackgroundVideoIndex  + 1) % self.maxVideos
         self.topLabel.text = videoTitleArray[self.currentBackgroundVideoIndex] + " (\(self.currentBackgroundVideoIndex + 1)/\(videoTitleArray.count))"
+        self.splashView?.image = splashImage[self.currentBackgroundVideoIndex]
         
         self.playBackground()
 
@@ -482,7 +498,7 @@ class DeskercisesViewController: UIViewController {
             self.currentBackgroundVideoIndex = self.maxVideos - 1
         }
         self.topLabel.text = videoTitleArray[self.currentBackgroundVideoIndex] + " (\(self.currentBackgroundVideoIndex + 1)/\(videoTitleArray.count))"
-        
+        self.splashView?.image = splashImage[self.currentBackgroundVideoIndex]
         self.playBackground()
     }
     
@@ -563,25 +579,33 @@ class DeskercisesViewController: UIViewController {
     }
     @objc func appDidEnterForeground() {
         
-
-        self.playerLayer = AVPlayerLayer(player: self.mainVideo)
-        self.playerLayer?.isHidden = false
-        self.playerLayer?.videoGravity = .resizeAspectFill;
-        self.videoView?.layer.addSublayer(self.playerLayer!)
-        
-        if self.secondVideo != nil {
-            self.playerLayer2 = AVPlayerLayer(player: self.secondVideo)
-            self.playerLayer2?.isHidden = true
-            self.playerLayer2?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(self.playerLayer2!)
+        if isStreaming {
+            self.mainVideo.pause()
+            self.secondVideo?.pause()
+            self.thirdVideo?.pause()
+            self.loadBackgroundPlayers()
+        }
+        else {
+            self.playerLayer = AVPlayerLayer(player: self.mainVideo)
+            self.playerLayer?.isHidden = false
+            self.playerLayer?.videoGravity = .resizeAspectFill;
+            self.videoView?.layer.addSublayer(self.playerLayer!)
+            
+            if self.secondVideo != nil {
+                self.playerLayer2 = AVPlayerLayer(player: self.secondVideo)
+                self.playerLayer2?.isHidden = true
+                self.playerLayer2?.videoGravity = .resizeAspectFill;
+                self.videoView?.layer.addSublayer(self.playerLayer2!)
+            }
+           
+            if self.thirdVideo != nil {
+                self.playerLayer3 = AVPlayerLayer(player: self.thirdVideo)
+                self.playerLayer3?.isHidden = true
+                self.playerLayer3?.videoGravity = .resizeAspectFill;
+                self.videoView?.layer.addSublayer(self.playerLayer3!)
+            }
         }
        
-        if self.thirdVideo != nil {
-            self.playerLayer3 = AVPlayerLayer(player: self.thirdVideo)
-            self.playerLayer3?.isHidden = true
-            self.playerLayer3?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(self.playerLayer3!)
-        }
         self.viewDidLayoutSubviews()
     
 

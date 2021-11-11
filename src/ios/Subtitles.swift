@@ -291,13 +291,13 @@ extension UIViewController {
             subtitleLabel?.backgroundColor = UIColor.clear
             subtitleLabel?.textAlignment = .center
             subtitleLabel?.numberOfLines = 0
-            subtitleLabel?.font = UIFont(name: "Biryani-Bold", size: 11)
+            subtitleLabel?.font = UIFont(name: "Biryani-SemiBold", size: 16)
             subtitleLabel?.textColor = UIColor.white
             subtitleLabel?.numberOfLines = 0;
             subtitleLabel?.layer.shadowColor = UIColor.black.cgColor
-            subtitleLabel?.layer.shadowOffset = CGSize(width: 1.0, height: 1.0);
-            subtitleLabel?.layer.shadowOpacity = 0.9;
-            subtitleLabel?.layer.shadowRadius = 1.0;
+            subtitleLabel?.layer.shadowOffset = CGSize(width: 1.0, height: -0.3);
+            subtitleLabel?.layer.shadowOpacity = 0.7;
+            subtitleLabel?.layer.shadowRadius = 3.0;
             subtitleLabel?.layer.shouldRasterize = true;
             subtitleLabel?.layer.rasterizationScale = UIScreen.main.scale
             subtitleLabel?.lineBreakMode = .byWordWrapping
@@ -306,7 +306,7 @@ extension UIViewController {
             // Position
             var constraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-(20)-[l]-(20)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: ["l" : subtitleLabel!])
             self.view?.addConstraints(constraints)
-            constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:[l]-(30)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: ["l" : subtitleLabel!])
+            constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:[l]-(130)-|", options: NSLayoutConstraint.FormatOptions(rawValue: 0), metrics: nil, views: ["l" : subtitleLabel!])
             self.view?.addConstraints(constraints)
             subtitleLabelHeightConstraint = NSLayoutConstraint(item: subtitleLabel!, attribute: .height, relatedBy: .equal, toItem: nil, attribute: NSLayoutConstraint.Attribute.notAnAttribute, multiplier: 1.0, constant: 30.0)
             self.view?.addConstraint(subtitleLabelHeightConstraint!)
