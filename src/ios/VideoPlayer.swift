@@ -13,12 +13,16 @@ import Foundation
     func loadMindfullness(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Image = command.arguments [0] as? String, let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURL = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURL = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
-            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
-                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
-                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                return
+            var splashImageDataArray: [Data] = []
+            for base64Image in base64Images {
+                guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    return
+                }
+                splashImageDataArray.append(imageData)
             }
             
             let playerViewController = MindfulnessViewController()
@@ -26,7 +30,7 @@ import Foundation
                                                                audioArray: audioArray,
                                                                audioVoiceURL: audioVoiceURL,
                                                                subtitleURL: subtitleURL,
-                                                               splashImage: splashImageData,
+                                                               splashImageArr: splashImageDataArray,
                                                                secondsToSkip: secondsToSkip,
                                                                isLiked: isLiked)
             { watchedTime, isLiked in
@@ -106,18 +110,22 @@ import Foundation
     func loadDeskercises(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Image = command.arguments [0] as? String, let videoArrayURL = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoArrayURL = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
             
-            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
-                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
-                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                return
+            var splashImageDataArray: [Data] = []
+            for base64Image in base64Images {
+                guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    return
+                }
+                splashImageDataArray.append(imageData)
             }
             
             let playerViewController = DeskercisesViewController()
             playerViewController.loadDeskercisesVideosFromURL(videoArray: videoArrayURL,
                                                               videoTitleArray: videoArrayTitle,
-                                                              splashImage: splashImageData,
+                                                              splashImageArr: splashImageDataArray,
                                                               isLiked: liked,
                                                               callback: { (isLiked) in
                 playerViewController.pause()
@@ -149,12 +157,16 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let base64Image = command.arguments [0] as? String, let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let voice = command.arguments[3] as? String, let subtitle = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let voice = command.arguments[3] as? String, let subtitle = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
-            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
-                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
-                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                return
+            var splashImageDataArray: [Data] = []
+            for base64Image in base64Images {
+                guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    return
+                }
+                splashImageDataArray.append(imageData)
             }
             
             var videoDataArray = [Data]()
@@ -253,7 +265,8 @@ import Foundation
             playerViewController.loadMindfullnessVideosFromData(videoArray:  videoDataArray,
                                                                 audioArray: audioDataArray,
                                                                 audioVoiceData: voiceData,
-                                                                subtitleData: subtitleData,    splashImage: splashImageData,
+                                                                subtitleData: subtitleData,
+                                                                splashImageArr: splashImageDataArray,
                                                                 secondsToSkip: secondsToSkip,
                                                                 isLiked: isLiked)
             { watchedTime, isLiked in
@@ -423,12 +436,16 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let base64Image = command.arguments [0] as? String, let videoFilesArray = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoFilesArray = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
             
-            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
-                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
-                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                return
+            var splashImageDataArray: [Data] = []
+            for base64Image in base64Images {
+                guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    return
+                }
+                splashImageDataArray.append(imageData)
             }
             
             var videoDataArray = [Data]()
@@ -460,7 +477,7 @@ import Foundation
             let playerViewController = DeskercisesViewController()
             playerViewController.loadDeskercisesVideosFromData(videoArray: videoDataArray,
                                                                videoTitleArray: videoArrayTitle,
-                                                               splashImage: splashImageData,
+                                                               splashImageArr: splashImageDataArray,
                                                                isLiked: liked)
             { isLiked in
                 playerViewController.pause()
