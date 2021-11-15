@@ -135,6 +135,7 @@ class MindfulnessViewController: UIViewController {
         } else {
             NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
         }
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
     }
     private func createScreen() {
         self.loadingView = UIView()
@@ -204,8 +205,8 @@ class MindfulnessViewController: UIViewController {
         likeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.addTarget(self, action: #selector(setLikeClick(_:)), for: .touchUpInside)
-        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 17).isActive = true
-        likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 26).isActive = true
+        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
+        likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 27).isActive = true
         
         let closeBtn = UIButton()
         closeBtn.translatesAutoresizingMaskIntoConstraints = false
@@ -216,8 +217,8 @@ class MindfulnessViewController: UIViewController {
         closeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.addTarget(self, action: #selector(closeClick), for: .touchUpInside)
-        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 17).isActive = true
-        closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -26).isActive = true
+        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 20).isActive = true
+        closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -27).isActive = true
         
         //subtitle switch
         subtitleSwitch.setOn(true, animated: true)
