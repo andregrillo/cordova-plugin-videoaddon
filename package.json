@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-videoaddon",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Plays a video sequence with swap gestures",
   "cordova": {
     "id": "cordova-plugin-videoaddon",
