@@ -159,7 +159,7 @@ class DeskercisesViewController: UIViewController {
         likeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.addTarget(self, action: #selector(setLikeClick(_:)), for: .touchUpInside)
-        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 17).isActive = true
+        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 15).isActive = true
         likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 26).isActive = true
         
         let closeBtn = UIButton()
@@ -171,7 +171,7 @@ class DeskercisesViewController: UIViewController {
         closeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.addTarget(self, action: #selector(closeClick), for: .touchUpInside)
-        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 17).isActive = true
+        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 15).isActive = true
         closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -26).isActive = true
         
         
