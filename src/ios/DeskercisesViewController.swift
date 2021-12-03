@@ -373,7 +373,7 @@ class DeskercisesViewController: UIViewController {
         playerLayer = AVPlayerLayer(player: mainVideo)
         playerLayer?.videoGravity = .resizeAspectFill;
         self.videoView?.layer.addSublayer(playerLayer!)
-       
+        mainVideo.play()
         
         //MARK: Second player setup
         if videoArray.count > 1 && videoTitleArray.count > 1 {
@@ -393,6 +393,8 @@ class DeskercisesViewController: UIViewController {
             playerLayer2?.videoGravity = .resizeAspectFill;
             self.videoView?.layer.addSublayer(playerLayer2!)
             
+            secondVideo?.play()
+            
             
         }
         //MARK: Third player setup
@@ -411,11 +413,12 @@ class DeskercisesViewController: UIViewController {
             playerLayer3?.isHidden = true
             playerLayer3?.videoGravity = .resizeAspectFill;
             self.videoView?.layer.addSublayer(playerLayer3!)
+            thirdVideo?.play()
             
         }
-        mainVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+//        mainVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+//        secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+//        thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
         
         self.view.bringSubviewToFront(self.controlView)
     }
@@ -468,6 +471,7 @@ class DeskercisesViewController: UIViewController {
             playerLayer3?.videoGravity = .resizeAspectFill;
             self.videoView?.layer.addSublayer(playerLayer3!)
         }
+        //if streaming, preloads
         mainVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
         secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
         thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
@@ -511,7 +515,7 @@ class DeskercisesViewController: UIViewController {
         self.splashView?.image = splashImage[self.currentBackgroundVideoIndex]
         self.playBackground()
     }
-    
+    //only used if streaming
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         // Only handle observations for the playerItemContext
         guard (object as? AVPlayer) == self.mainVideo || (object as? AVPlayer) == self.secondVideo || (object as? AVPlayer) == self.thirdVideo else {
@@ -522,10 +526,10 @@ class DeskercisesViewController: UIViewController {
               return
           }
 
-        
+
         if keyPath == #keyPath(AVPlayerItem.status) {
             let player = (object as? AVPlayer)
-           
+
               // Switch over status value
             switch player?.status {
               case .readyToPlay:
@@ -537,7 +541,7 @@ class DeskercisesViewController: UIViewController {
                             DispatchQueue.main.async {
                                 self.mainVideo.play()
                             }
-                           
+
                         }
                     }
                 }
@@ -548,11 +552,11 @@ class DeskercisesViewController: UIViewController {
                             DispatchQueue.main.async {
                                 self.secondVideo?.play()
                             }
-                            
+
                         }
                     }
                 }
-                
+
                 else if player == self.thirdVideo {
                     self.thirdVideo?.preroll(atRate: 1) { (main3Finished) in
                         print("m3 preroll \(main3Finished)")
@@ -560,7 +564,7 @@ class DeskercisesViewController: UIViewController {
                             DispatchQueue.main.async {
                                 self.thirdVideo?.play()
                             }
-                            
+
                         }
                     }
                 }

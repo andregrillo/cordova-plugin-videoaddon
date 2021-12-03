@@ -1317,6 +1317,10 @@ class MindfulnessViewController: UIViewController {
         if self.playPauseBtn.isSelected {
             self.playBackground()
         }
+        
+        if !isStreaming && audioVoice.currentTime() == audioVoice.currentItem?.duration {
+            self.closeClick()
+        }
 
     }
     @objc func playBackground(){
