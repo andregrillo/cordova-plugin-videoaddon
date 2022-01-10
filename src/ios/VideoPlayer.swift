@@ -13,7 +13,7 @@ import Foundation
     func loadMindfullness(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURL = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURLString = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
             var splashImageDataArray: [Data] = []
             for base64Image in base64Images {
@@ -24,47 +24,54 @@ import Foundation
                 }
                 splashImageDataArray.append(imageData)
             }
+            var subtitleData = Data()
+            guard let subtitleURL = URL.init(string: subtitleURLString) else {return}
             
-            let playerViewController = MindfulnessViewController()
-            playerViewController.loadMindfullnessVideosFromURL(videoArray:  videoArray,
-                                                               audioArray: audioArray,
-                                                               audioVoiceURL: audioVoiceURL,
-                                                               subtitleURL: subtitleURL,
-                                                               splashImageArr: splashImageDataArray,
-                                                               secondsToSkip: secondsToSkip,
-                                                               isLiked: isLiked)
-            { watchedTime, isLiked in
-                playerViewController.pause()
-                playerViewController.dismiss(animated: false, completion: nil)
-                let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
-                if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
-                   let json = String(data: jsonData, encoding: String.Encoding.ascii) {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                }
-                else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+            let task = URLSession.shared.dataTask(with: subtitleURL) {(data, response, error) in
+                guard let data = data else { return }
+                subtitleData = data
+                DispatchQueue.main.async {
+                   let playerViewController = MindfulnessViewController()
+                    playerViewController.loadMindfullnessVideosFromURL(videoArray:  videoArray,
+                                                                       audioArray: audioArray,
+                                                                       audioVoiceURL: audioVoiceURL,
+                                                                       subtitleData: subtitleData,
+                                                                       splashImageArr: splashImageDataArray,
+                                                                       secondsToSkip: secondsToSkip,
+                                                                       isLiked: isLiked)
+                    { watchedTime, isLiked in
+                        playerViewController.pause()
+                        playerViewController.dismiss(animated: false, completion: nil)
+                        let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
+                        if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
+                           let json = String(data: jsonData, encoding: String.Encoding.ascii) {
+                            pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
+                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        }
+                        else {
+                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
+                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        }
+                    }
+                    
+                    playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+                    self.viewController.present(playerViewController, animated: false, completion: nil)
+                    
+                    pluginResult!.setKeepCallbackAs(true)
                 }
             }
-            
-            playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
-            self.viewController.present(playerViewController, animated: false, completion: nil)
-            
-            pluginResult!.setKeepCallbackAs(true)
-            
+            task.resume()
         } else {
             pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Missing input parameters")
             self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
         }
-        
     }
     
     @objc(loadBreathwork:)
     func loadBreathwork(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURL = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURLString = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
             guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
                 pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
@@ -72,33 +79,43 @@ import Foundation
                 return
             }
             
-            let playerViewController = MindfulnessViewController()
-            playerViewController.loadBreathworkVideosFromURL(backgroundVideoURL:  backgroundVideoURL,
-                                                             audioArray: audioArray,
-                                                             audioVoiceURL: audioVoiceURL,
-                                                             subtitleURL: subtitleURL,
-                                                             splashImage: splashImageData,
-                                                             secondsToSkip: secondsToSkip,
-                                                             isLiked: isLiked)
-            { watchedTime, isLiked in
-                playerViewController.pause()
-                playerViewController.dismiss(animated: false, completion: nil)
-                let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
-                if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
-                   let json = String(data: jsonData, encoding: String.Encoding.ascii) {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                }
-                else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+            var subtitleData = Data()
+            guard let subtitleURL = URL.init(string: subtitleURLString) else {return}
+            
+            let task = URLSession.shared.dataTask(with: subtitleURL) {(data, response, error) in
+                guard let data = data else { return }
+                subtitleData = data
+                DispatchQueue.main.async {
+                    let playerViewController = MindfulnessViewController()
+                    playerViewController.loadBreathworkVideosFromURL(backgroundVideoURL:  backgroundVideoURL,
+                                                                     audioArray: audioArray,
+                                                                     audioVoiceURL: audioVoiceURL,
+                                                                     subtitleData: subtitleData,
+                                                                     splashImage: splashImageData,
+                                                                     secondsToSkip: secondsToSkip,
+                                                                     isLiked: isLiked)
+                    { watchedTime, isLiked in
+                        playerViewController.pause()
+                        playerViewController.dismiss(animated: false, completion: nil)
+                        let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
+                        if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
+                           let json = String(data: jsonData, encoding: String.Encoding.ascii) {
+                            pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
+                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        }
+                        else {
+                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
+                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        }
+                    }
+                    
+                    playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+                    self.viewController.present(playerViewController, animated: false, completion: nil)
+                    
+                    pluginResult!.setKeepCallbackAs(true)
                 }
             }
-            
-            playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
-            self.viewController.present(playerViewController, animated: false, completion: nil)
-            
-            pluginResult!.setKeepCallbackAs(true)
+            task.resume()
             
         } else {
             pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Missing input parameters")
@@ -181,7 +198,7 @@ import Foundation
                         pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(video) as input")
                         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                     }
-                return url
+                    return url
                 }()
                 if FileManager.default.fileExists(atPath: videoURL.path){
                     do {
@@ -206,7 +223,7 @@ import Foundation
                         pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(audio) as input")
                         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                     }
-                return url
+                    return url
                 }()
                 if FileManager.default.fileExists(atPath: audioURL.path){
                     do {
@@ -229,7 +246,7 @@ import Foundation
                     pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(voice) as input")
                     self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                 }
-            return url
+                return url
             }()
             if FileManager.default.fileExists(atPath: audioVoiceURL.path){
                 do {
@@ -250,7 +267,7 @@ import Foundation
                     pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(subtitle) as input")
                     self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                 }
-            return url
+                return url
             }()
             if FileManager.default.fileExists(atPath: subtitleURL.path){
                 do {
@@ -317,7 +334,7 @@ import Foundation
                     pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(backgroundVideoFile) as input")
                     self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                 }
-            return url
+                return url
             }()
             if FileManager.default.fileExists(atPath: backgroundVideoURL.path){
                 do {
@@ -342,7 +359,7 @@ import Foundation
                         pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(audio) as input")
                         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                     }
-                return url
+                    return url
                 }()
                 if FileManager.default.fileExists(atPath: audioURL.path){
                     do {
@@ -365,7 +382,7 @@ import Foundation
                     pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(audioVoiceFile) as input")
                     self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                 }
-            return url
+                return url
             }()
             if FileManager.default.fileExists(atPath: audioVoiceURL.path){
                 do {
@@ -379,13 +396,13 @@ import Foundation
             var subtitleData = Data()
             let subtitleURL: URL = {
                 var url: URL!
-                    let path = "file://\(libraryDirectory.path)/NoCloud/Files/\(subtitleFile)"
-                    if let urlPath = URL(string: path) {
-                        url = urlPath
-                    } else {
-                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(subtitleFile) as input")
-                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    }
+                let path = "file://\(libraryDirectory.path)/NoCloud/Files/\(subtitleFile)"
+                if let urlPath = URL(string: path) {
+                    url = urlPath
+                } else {
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(subtitleFile) as input")
+                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                }
                 return url
             }()
             if FileManager.default.fileExists(atPath: subtitleURL.path){
@@ -453,13 +470,13 @@ import Foundation
             for video in videoFilesArray {
                 let videoURL: URL = {
                     var url: URL!
-                        let path = "file://\(libraryDirectory.path)/NoCloud/Files/\(video)"
-                        if let urlPath = URL(string: path) {
-                            url = urlPath
-                        } else {
-                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(video) as input")
-                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                        }
+                    let path = "file://\(libraryDirectory.path)/NoCloud/Files/\(video)"
+                    if let urlPath = URL(string: path) {
+                        url = urlPath
+                    } else {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(video) as input")
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    }
                     return url
                 }()
                 if FileManager.default.fileExists(atPath: videoURL.path){

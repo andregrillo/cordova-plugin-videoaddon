@@ -27,6 +27,7 @@ class DeskercisesViewController: UIViewController {
     private var callback:((Bool)->())?
 
     private var videoArray:[String]?
+    private var localVideoArray:[Data]?
     
     private var currentBackgroundVideoIndex = 0
     private  var maxVideos = 0
@@ -169,7 +170,7 @@ class DeskercisesViewController: UIViewController {
         likeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.addTarget(self, action: #selector(setLikeClick(_:)), for: .touchUpInside)
-        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 14).isActive = true
+        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
         likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 26).isActive = true
         
         let closeBtn = UIButton()
@@ -181,9 +182,8 @@ class DeskercisesViewController: UIViewController {
         closeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.addTarget(self, action: #selector(closeClick), for: .touchUpInside)
-        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 14).isActive = true
+        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
         closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -26).isActive = true
-        
         
         labelBgView = UIView()
         labelBgView.translatesAutoresizingMaskIntoConstraints = false
@@ -197,19 +197,27 @@ class DeskercisesViewController: UIViewController {
         topLabel.font = UIFont(name: "Biryani-SemiBold", size: 12)
         topLabel.minimumScaleFactor = 0.1
         topLabel.adjustsFontSizeToFitWidth = true
+        topLabel.textAlignment = .center
         self.controlView.addSubview(topLabel)
-        topLabel.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 0).isActive = true
+        topLabel.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 1).isActive = true
         topLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         topLabel.leadingAnchor.constraint(greaterThanOrEqualTo: likeBtn.trailingAnchor, constant: 8).isActive = true
         topLabel.trailingAnchor.constraint(lessThanOrEqualTo: closeBtn.leadingAnchor, constant: -8).isActive = true
-        
-        
+
         //constraints to labelBgView
-        topLabel.topAnchor.constraint(equalTo: labelBgView.topAnchor,constant:  4).isActive = true
+        topLabel.topAnchor.constraint(equalTo: labelBgView.topAnchor,constant:  3).isActive = true
         topLabel.leadingAnchor.constraint(equalTo: labelBgView.leadingAnchor,constant:  6).isActive = true
         topLabel.trailingAnchor.constraint(equalTo: labelBgView.trailingAnchor,constant:  -6).isActive = true
-        topLabel.bottomAnchor.constraint(equalTo: labelBgView.bottomAnchor,constant:  -4).isActive = true
-        
+        topLabel.bottomAnchor.constraint(equalTo: labelBgView.bottomAnchor,constant:  0).isActive = true
+//        topLabel.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        let v = UIView()
+        v.backgroundColor = .green
+        v.translatesAutoresizingMaskIntoConstraints = false
+        self.controlView.addSubview(v)
+        v.heightAnchor.constraint(equalToConstant: 1).isActive = true
+        v.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 0).isActive = true
+        v.trailingAnchor.constraint(equalTo: closeBtn.leadingAnchor,constant:  0).isActive = true
+        v.leadingAnchor.constraint(equalTo: likeBtn.trailingAnchor,constant:  0).isActive = true
         
         let swipeLabel = UILabel()
         swipeLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -331,7 +339,7 @@ class DeskercisesViewController: UIViewController {
         self.maxVideos = videoArray.count
         self.topLabel.text = videoTitleArray[0] + " (1/\(videoTitleArray.count))"
         
-        self.loadBackgroundPlayers()
+        self.loadRemoteBackgroundPlayers()
         self.switchVideo()
       
         self.view.bringSubviewToFront(self.controlView)
@@ -348,6 +356,7 @@ class DeskercisesViewController: UIViewController {
     func loadDeskercisesVideosFromData(videoArray:[Data], videoTitleArray:[String], splashImageArr:[Data], isLiked:Bool, callback:@escaping ((Bool)->())) {
         self.callback = callback
         self.videoTitleArray = videoTitleArray
+        self.localVideoArray = videoArray
         self.isStreaming = false
         for splash in splashImageArr {
             self.splashImage.append(UIImage(data: splash) ?? UIImage())
@@ -359,71 +368,12 @@ class DeskercisesViewController: UIViewController {
         self.maxVideos = videoArray.count
         self.topLabel.text = videoTitleArray[0] + " (1/\(videoTitleArray.count))"
         
-        //MARK: Main player setup
-        
-        try? videoArray[0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainvideo.mp4"))
-    
-        let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
-        let playerItem = AVPlayerItem(url: urlVideo)
-        mainVideo = AVQueuePlayer(items: [playerItem])
-        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
-        mainVideo.volume = 0
-        secondVideo?.automaticallyWaitsToMinimizeStalling = true
-        //video player
-        playerLayer = AVPlayerLayer(player: mainVideo)
-        playerLayer?.videoGravity = .resizeAspectFill;
-        self.videoView?.layer.addSublayer(playerLayer!)
-        mainVideo.play()
-        
-        //MARK: Second player setup
-        if videoArray.count > 1 && videoTitleArray.count > 1 {
-            
-            try? videoArray[1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondvideo.mp4"))
-    
-            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondvideo.mp4")
-            let pi2 = AVPlayerItem(url: urlVideo)
-            secondVideo = AVQueuePlayer(items: [pi2])
-            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
-            secondVideo?.automaticallyWaitsToMinimizeStalling = true
-            secondVideo?.volume = 0
-            
-            //second video player
-            playerLayer2 = AVPlayerLayer(player: secondVideo)
-            playerLayer2?.isHidden = true
-            playerLayer2?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(playerLayer2!)
-            
-            secondVideo?.play()
-            
-            
-        }
-        //MARK: Third player setup
-        if videoArray.count > 2 && videoTitleArray.count > 2 {
-            try? videoArray[2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdvideo.mp4"))
-            
-            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdvideo.mp4")
-            let pi3 = AVPlayerItem(url: urlVideo)
-            thirdVideo = AVQueuePlayer(items: [pi3])
-            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
-            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
-            thirdVideo?.volume = 0
-            
-            //third video player
-            playerLayer3 = AVPlayerLayer(player: thirdVideo)
-            playerLayer3?.isHidden = true
-            playerLayer3?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(playerLayer3!)
-            thirdVideo?.play()
-            
-        }
-//        mainVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-//        secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-//        thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        
+        self.loadLocalBackgroundPlayers()
+        self.switchVideo()
         self.view.bringSubviewToFront(self.controlView)
     }
     
-    private func loadBackgroundPlayers() {
+    private func loadRemoteBackgroundPlayers() {
         //MARK: Main player setup
         let playerItem = AVPlayerItem(url: URL(string: videoArray![0])!)
         playerItem.preferredForwardBufferDuration = TimeInterval(30)
@@ -476,6 +426,71 @@ class DeskercisesViewController: UIViewController {
         secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
         thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
     }
+    
+    private func loadLocalBackgroundPlayers() {
+        //MARK: Main player setup
+        
+        try? self.localVideoArray![0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainvideo.mp4"))
+    
+        let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
+        let playerItem = AVPlayerItem(url: urlVideo)
+        mainVideo = AVQueuePlayer(items: [playerItem])
+        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
+        mainVideo.volume = 0
+        secondVideo?.automaticallyWaitsToMinimizeStalling = true
+        //video player
+        playerLayer = AVPlayerLayer(player: mainVideo)
+        playerLayer?.isHidden = true
+        playerLayer?.videoGravity = .resizeAspectFill;
+        self.videoView?.layer.addSublayer(playerLayer!)
+        mainVideo.play()
+        
+        //MARK: Second player setup
+        if self.localVideoArray!.count > 1 && videoTitleArray.count > 1 {
+            
+            try? self.localVideoArray![1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondvideo.mp4"))
+    
+            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondvideo.mp4")
+            let pi2 = AVPlayerItem(url: urlVideo)
+            secondVideo = AVQueuePlayer(items: [pi2])
+            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
+            secondVideo?.automaticallyWaitsToMinimizeStalling = true
+            secondVideo?.volume = 0
+            
+            //second video player
+            playerLayer2 = AVPlayerLayer(player: secondVideo)
+            playerLayer2?.isHidden = true
+            playerLayer2?.videoGravity = .resizeAspectFill;
+            self.videoView?.layer.addSublayer(playerLayer2!)
+            
+            secondVideo?.play()
+            
+            
+        }
+        //MARK: Third player setup
+        if self.localVideoArray!.count > 2 && videoTitleArray.count > 2 {
+            try? self.localVideoArray![2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdvideo.mp4"))
+            
+            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdvideo.mp4")
+            let pi3 = AVPlayerItem(url: urlVideo)
+            thirdVideo = AVQueuePlayer(items: [pi3])
+            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
+            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
+            thirdVideo?.volume = 0
+            
+            //third video player
+            playerLayer3 = AVPlayerLayer(player: thirdVideo)
+            playerLayer3?.isHidden = true
+            playerLayer3?.videoGravity = .resizeAspectFill;
+            self.videoView?.layer.addSublayer(playerLayer3!)
+            thirdVideo?.play()
+            
+        }
+//        mainVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+//        secondVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+//        thirdVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+    }
+    
     @objc func setLikeClick(_ sender:UIButton) {
         sender.isSelected = !sender.isSelected
     }
@@ -597,27 +612,31 @@ class DeskercisesViewController: UIViewController {
             self.mainVideo.pause()
             self.secondVideo?.pause()
             self.thirdVideo?.pause()
-            self.loadBackgroundPlayers()
+            self.loadRemoteBackgroundPlayers()
         }
         else {
-            self.playerLayer = AVPlayerLayer(player: self.mainVideo)
-            self.playerLayer?.isHidden = false
-            self.playerLayer?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(self.playerLayer!)
-            
-            if self.secondVideo != nil {
-                self.playerLayer2 = AVPlayerLayer(player: self.secondVideo)
-                self.playerLayer2?.isHidden = true
-                self.playerLayer2?.videoGravity = .resizeAspectFill;
-                self.videoView?.layer.addSublayer(self.playerLayer2!)
-            }
-           
-            if self.thirdVideo != nil {
-                self.playerLayer3 = AVPlayerLayer(player: self.thirdVideo)
-                self.playerLayer3?.isHidden = true
-                self.playerLayer3?.videoGravity = .resizeAspectFill;
-                self.videoView?.layer.addSublayer(self.playerLayer3!)
-            }
+            self.mainVideo.pause()
+            self.secondVideo?.pause()
+            self.thirdVideo?.pause()
+            self.loadLocalBackgroundPlayers()
+//            self.playerLayer = AVPlayerLayer(player: self.mainVideo)
+//            self.playerLayer?.isHidden = false
+//            self.playerLayer?.videoGravity = .resizeAspectFill;
+//            self.videoView?.layer.addSublayer(self.playerLayer!)
+//
+//            if self.secondVideo != nil {
+//                self.playerLayer2 = AVPlayerLayer(player: self.secondVideo)
+//                self.playerLayer2?.isHidden = true
+//                self.playerLayer2?.videoGravity = .resizeAspectFill;
+//                self.videoView?.layer.addSublayer(self.playerLayer2!)
+//            }
+//
+//            if self.thirdVideo != nil {
+//                self.playerLayer3 = AVPlayerLayer(player: self.thirdVideo)
+//                self.playerLayer3?.isHidden = true
+//                self.playerLayer3?.videoGravity = .resizeAspectFill;
+//                self.videoView?.layer.addSublayer(self.playerLayer3!)
+//            }
         }
        
         self.viewDidLayoutSubviews()

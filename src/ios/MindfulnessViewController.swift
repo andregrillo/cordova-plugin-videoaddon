@@ -69,6 +69,9 @@ class MindfulnessViewController: UIViewController {
     private var videoArray:[String]?
     private var audioArray:[String]?
     
+    private var localVideoArray:[Data]?
+    private var localAudioArray:[Data]?
+    
     private var currentBackgroundVideoIndex = 0
     private  var maxVideos = 0
     private var secondsToSkip = 0
@@ -454,12 +457,12 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter videoArray: Array of string with background video url
     /// - Parameter audioArray: Array of string with background audio url
     /// - Parameter audioVoiceURL:String to the narration audio
-    /// - Parameter subtitleURL:String to the subtitles file (.srt)
+    /// - Parameter subtitleData:Data to the subtitles file (.srt)
     /// - Parameter splashImageArr: Array of data with the images shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleURL:String, splashImageArr:[Data], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImageArr:[Data], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoArray = videoArray
         self.audioArray = audioArray
@@ -483,7 +486,7 @@ class MindfulnessViewController: UIViewController {
         }
         
         //load videos and audios
-        self.loadBackgroundPlayers()
+        self.loadRemoteBackgroundPlayers()
         self.switchVideo()
         self.view.bringSubviewToFront(self.controlView)
         
@@ -514,9 +517,7 @@ class MindfulnessViewController: UIViewController {
         audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
       
         //MARK: Subtitle setup
-        if let subUrl = URL(string:subtitleURL) {
-            self.addSubtitles().open(fileFromRemote: subUrl, player: audioVoice)
-        }
+        self.addSubtitles().open(fromData: subtitleData, player: audioVoice)
       
     }
     
@@ -534,6 +535,8 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
     func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImageArr:[Data], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
+        self.localVideoArray = videoArray
+        self.localAudioArray = audioArray
         self.watchedTime = 0
         self.isMindfullness = true
         self.isStreaming = false
@@ -553,79 +556,8 @@ class MindfulnessViewController: UIViewController {
             self.addSkipButton()
         }
         
-        //MARK: Main player setup
-        
-        try? videoArray[0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainvideo.mp4"))
-        try? audioArray[0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainaudio.mp3"))
-        let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
-        let playerItem = AVPlayerItem(url: urlVideo)
-        mainVideo = AVQueuePlayer(items: [playerItem])
-        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
-        mainVideo.volume = 0
-        mainVideo.automaticallyWaitsToMinimizeStalling = true
-        let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainaudio.mp3")
-        let playerAudioItem = AVPlayerItem(url: urlAudio)
-        mainAudio = AVQueuePlayer(items: [playerAudioItem])
-        mainAudioLooper = AVPlayerLooper(player: mainAudio, templateItem: playerAudioItem)
-        mainAudio.automaticallyWaitsToMinimizeStalling = true
-           
-        //video player
-        playerLayer = AVPlayerLayer(player: mainVideo)
-        playerLayer?.videoGravity = .resizeAspectFill;
-        self.videoView?.layer.addSublayer(playerLayer!)
-       
-        
-        //MARK: Second player setup
-        if videoArray.count > 1 && audioArray.count > 1 {
-            
-            try? videoArray[1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondvideo.mp4"))
-            try? audioArray[1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondaudio.mp3"))
-            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondvideo.mp4")
-            let pi2 = AVPlayerItem(url: urlVideo)
-            secondVideo = AVQueuePlayer(items: [pi2])
-            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
-            secondVideo?.automaticallyWaitsToMinimizeStalling = true
-            secondVideo?.volume = 0
-            
-            //second video player
-            playerLayer2 = AVPlayerLayer(player: secondVideo)
-            playerLayer2?.isHidden = true
-            playerLayer2?.videoGravity = .resizeAspectFill;
-            self.videoView.layer.addSublayer(playerLayer2!)
-            
-            let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondaudio.mp3")
-            let pai2 = AVPlayerItem(url: urlAudio)
-            secondAudio = AVQueuePlayer(items: [pai2])
-            secondAudioLooper = AVPlayerLooper(player: secondAudio, templateItem: pai2)
-            secondAudio.automaticallyWaitsToMinimizeStalling = true
-            
-            
-        }
-        //MARK: Third player setup
-        if videoArray.count > 2 && audioArray.count > 2 {
-            try? videoArray[2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdvideo.mp4"))
-            try? audioArray[2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdaudio.mp3"))
-            
-            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdvideo.mp4")
-            let pi3 = AVPlayerItem(url: urlVideo)
-            thirdVideo = AVQueuePlayer(items: [pi3])
-            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
-            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
-            thirdVideo?.volume = 0
-            
-            //third video player
-            playerLayer3 = AVPlayerLayer(player: thirdVideo)
-            playerLayer3?.isHidden = true
-            playerLayer3?.videoGravity = .resizeAspectFill;
-            self.videoView.layer.addSublayer(playerLayer3!)
-            
-            let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdaudio.mp3")
-            let pai3 = AVPlayerItem(url: urlAudio)
-            thirdAudio = AVQueuePlayer(items: [pai3])
-            thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
-            thirdAudio.automaticallyWaitsToMinimizeStalling = true
-            
-        }
+        self.loadLocalBackgroundPlayers()
+        self.switchVideo()
 
         self.view.bringSubviewToFront(self.controlView)
         
@@ -668,12 +600,12 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter backgroundVideoURL: String to the background video
     /// - Parameter audioArray: Array of string with background audio url
     /// - Parameter audioVoiceURL:String to the narration audio
-    /// - Parameter subtitleURL:String to the subtitles file (.srt)
+    /// - Parameter subtitleData:Data to the subtitles file (.srt)
     /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromURL(backgroundVideoURL:String, audioArray:[String], audioVoiceURL:String, subtitleURL:String, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromURL(backgroundVideoURL:String, audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoArray = [backgroundVideoURL]
         self.audioArray = audioArray
@@ -734,7 +666,7 @@ class MindfulnessViewController: UIViewController {
 //        }
        
         //load videos and audios
-        self.loadBackgroundPlayers()
+        self.loadRemoteBackgroundPlayers()
         self.switchAudio()
         self.view.bringSubviewToFront(self.controlView)
         
@@ -765,9 +697,7 @@ class MindfulnessViewController: UIViewController {
         audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
        
         //MARK: Subtitle setup
-        if let subUrl = URL(string:subtitleURL) {
-            self.addSubtitles().open(fileFromRemote: subUrl, player: audioVoice)
-        }
+        self.addSubtitles().open(fromData: subtitleData, player: audioVoice)
     }
 
     /// Loads videos passed in params from Data.
@@ -783,6 +713,8 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
     func loadBreathworkVideosFromData(backgroundVideoData:Data, audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
+        self.localVideoArray = [backgroundVideoData]
+        self.localAudioArray = audioArray
         self.watchedTime = 0
         self.isMindfullness = false
         self.isStreaming = false
@@ -800,52 +732,8 @@ class MindfulnessViewController: UIViewController {
             self.addSkipButton()
         }
         
-        //MARK: Main player setup
-        
-        try? backgroundVideoData.write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainvideo.mp4"))
-        try? audioArray[0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainaudio.mp3"))
-        let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
-        let playerItem = AVPlayerItem(url: urlVideo)
-        mainVideo = AVQueuePlayer(items: [playerItem])
-        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
-        mainVideo.volume = 0
-        mainVideo.automaticallyWaitsToMinimizeStalling = true
-        let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainaudio.mp3")
-        let playerAudioItem = AVPlayerItem(url: urlAudio)
-        mainAudio = AVQueuePlayer(items: [playerAudioItem])
-        mainAudioLooper = AVPlayerLooper(player: mainAudio, templateItem: playerAudioItem)
-        mainAudio.automaticallyWaitsToMinimizeStalling = true
-           
-        //video player
-        playerLayer = AVPlayerLayer(player: mainVideo)
-        playerLayer?.videoGravity = .resizeAspectFill;
-        self.videoView.layer.addSublayer(playerLayer!)
-       
-        
-        //MARK: Second player setup
-        if audioArray.count > 1 {
-            try? audioArray[1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondaudio.mp3"))
-            
-            let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondaudio.mp3")
-            let pai2 = AVPlayerItem(url: urlAudio)
-            secondAudio = AVQueuePlayer(items: [pai2])
-            secondAudioLooper = AVPlayerLooper(player: secondAudio, templateItem: pai2)
-            secondAudio.automaticallyWaitsToMinimizeStalling = true
-            
-            
-        }
-        //MARK: Third player setup
-        if audioArray.count > 2 {
-            try? audioArray[2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdaudio.mp3"))
-            
-            let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdaudio.mp3")
-            let pai3 = AVPlayerItem(url: urlAudio)
-            thirdAudio = AVQueuePlayer(items: [pai3])
-            thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
-            thirdAudio.automaticallyWaitsToMinimizeStalling = true
-            
-        }
-
+        self.loadLocalBackgroundPlayers()
+        self.switchAudio()
         self.view.bringSubviewToFront(self.controlView)
         
         //MARK: Audio voice setup
@@ -882,7 +770,7 @@ class MindfulnessViewController: UIViewController {
         
     }
     
-    private func loadBackgroundPlayers() {
+    private func loadRemoteBackgroundPlayers() {
         //MARK: Main player setup
         let playerItem = AVPlayerItem(url: URL(string: videoArray![0])!)
         playerItem.preferredForwardBufferDuration = TimeInterval(30)
@@ -948,6 +836,89 @@ class MindfulnessViewController: UIViewController {
         if audioArray!.count > 2 {
             //third audio player
             let pai3 = AVPlayerItem(url: URL(string: audioArray![2])!)
+            thirdAudio = AVQueuePlayer(items: [pai3])
+            thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
+            thirdAudio.automaticallyWaitsToMinimizeStalling = true
+        }
+    }
+    
+    private func loadLocalBackgroundPlayers() {
+        //MARK: Main player setup
+        
+        try? localVideoArray![0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainvideo.mp4"))
+        try? localAudioArray![0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainaudio.mp3"))
+        let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
+        let playerItem = AVPlayerItem(url: urlVideo)
+        mainVideo = AVQueuePlayer(items: [playerItem])
+        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
+        mainVideo.volume = 0
+        mainVideo.automaticallyWaitsToMinimizeStalling = true
+        let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainaudio.mp3")
+        let playerAudioItem = AVPlayerItem(url: urlAudio)
+        mainAudio = AVQueuePlayer(items: [playerAudioItem])
+        mainAudioLooper = AVPlayerLooper(player: mainAudio, templateItem: playerAudioItem)
+        mainAudio.automaticallyWaitsToMinimizeStalling = true
+           
+        //video player
+        playerLayer = AVPlayerLayer(player: mainVideo)
+        playerLayer?.videoGravity = .resizeAspectFill;
+        playerLayer?.isHidden = isMindfullness
+        self.videoView?.layer.addSublayer(playerLayer!)
+       
+        
+        //MARK: Second player setup
+        if localVideoArray!.count > 1{
+            
+            try? localVideoArray![1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondvideo.mp4"))
+          
+            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondvideo.mp4")
+            let pi2 = AVPlayerItem(url: urlVideo)
+            secondVideo = AVQueuePlayer(items: [pi2])
+            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
+            secondVideo?.automaticallyWaitsToMinimizeStalling = true
+            secondVideo?.volume = 0
+            
+            //second video player
+            playerLayer2 = AVPlayerLayer(player: secondVideo)
+            playerLayer2?.isHidden = true
+            playerLayer2?.videoGravity = .resizeAspectFill;
+            self.videoView.layer.addSublayer(playerLayer2!)
+
+        }
+        
+        if localAudioArray!.count > 1 {
+            try? localAudioArray![1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondaudio.mp3"))
+            let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondaudio.mp3")
+            let pai2 = AVPlayerItem(url: urlAudio)
+            secondAudio = AVQueuePlayer(items: [pai2])
+            secondAudioLooper = AVPlayerLooper(player: secondAudio, templateItem: pai2)
+            secondAudio.automaticallyWaitsToMinimizeStalling = true
+        }
+        
+        
+        //MARK: Third player setup
+        if localVideoArray!.count > 2 {
+            try? localVideoArray![2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdvideo.mp4"))
+            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdvideo.mp4")
+            let pi3 = AVPlayerItem(url: urlVideo)
+            thirdVideo = AVQueuePlayer(items: [pi3])
+            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
+            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
+            thirdVideo?.volume = 0
+            
+            //third video player
+            playerLayer3 = AVPlayerLayer(player: thirdVideo)
+            playerLayer3?.isHidden = true
+            playerLayer3?.videoGravity = .resizeAspectFill;
+            self.videoView.layer.addSublayer(playerLayer3!)
+          
+            
+        }
+        if localAudioArray!.count > 2 {
+            try? localAudioArray![2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdaudio.mp3"))
+            
+            let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdaudio.mp3")
+            let pai3 = AVPlayerItem(url: urlAudio)
             thirdAudio = AVQueuePlayer(items: [pai3])
             thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
             thirdAudio.automaticallyWaitsToMinimizeStalling = true
@@ -1271,35 +1242,18 @@ class MindfulnessViewController: UIViewController {
         self.playerLayer = nil
         self.playerLayer2 = nil
         self.playerLayer3 = nil
+        self.audioVoice.pause()
     }
     @objc func appDidEnterForeground() {
         
-
-        
         if isStreaming {
             self.stopBackground()
-            self.loadBackgroundPlayers()
+            self.loadRemoteBackgroundPlayers()
         }
         else {
+            self.stopBackground()
+            self.loadLocalBackgroundPlayers()
             
-            self.playerLayer = AVPlayerLayer(player: self.mainVideo)
-            self.playerLayer?.isHidden = true
-            self.playerLayer?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(self.playerLayer!)
-    
-            if self.secondVideo != nil {
-                self.playerLayer2 = AVPlayerLayer(player: self.secondVideo)
-                self.playerLayer2?.isHidden = true
-                self.playerLayer2?.videoGravity = .resizeAspectFill;
-                self.videoView?.layer.addSublayer(self.playerLayer2!)
-            }
-    
-            if self.thirdVideo != nil {
-                self.playerLayer3 = AVPlayerLayer(player: self.thirdVideo)
-                self.playerLayer3?.isHidden = true
-                self.playerLayer3?.videoGravity = .resizeAspectFill;
-                self.videoView?.layer.addSublayer(self.playerLayer3!)
-            }
         }
       
         
@@ -1315,6 +1269,7 @@ class MindfulnessViewController: UIViewController {
         }
     
         if self.playPauseBtn.isSelected {
+            self.audioVoice.play()
             self.playBackground()
         }
         
