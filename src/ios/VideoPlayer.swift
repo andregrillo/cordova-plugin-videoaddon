@@ -13,54 +13,54 @@ import Foundation
     func loadMindfullness(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURLString = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleBase64String = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
             var splashImageDataArray: [Data] = []
             for base64Image in base64Images {
                 guard let imageData = convertBase64ToData(base64String: base64Image) else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
                     self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                     return
                 }
                 splashImageDataArray.append(imageData)
             }
-            var subtitleData = Data()
-            guard let subtitleURL = URL.init(string: subtitleURLString) else {return}
-            
-            let task = URLSession.shared.dataTask(with: subtitleURL) {(data, response, error) in
-                guard let data = data else { return }
-                subtitleData = data
-                DispatchQueue.main.async {
-                   let playerViewController = MindfulnessViewController()
-                    playerViewController.loadMindfullnessVideosFromURL(videoArray:  videoArray,
-                                                                       audioArray: audioArray,
-                                                                       audioVoiceURL: audioVoiceURL,
-                                                                       subtitleData: subtitleData,
-                                                                       splashImageArr: splashImageDataArray,
-                                                                       secondsToSkip: secondsToSkip,
-                                                                       isLiked: isLiked)
-                    { watchedTime, isLiked in
-                        playerViewController.pause()
-                        playerViewController.dismiss(animated: false, completion: nil)
-                        let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
-                        if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
-                           let json = String(data: jsonData, encoding: String.Encoding.ascii) {
-                            pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
-                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                        }
-                        else {
-                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
-                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                        }
-                    }
-                    
-                    playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
-                    self.viewController.present(playerViewController, animated: false, completion: nil)
-                    
-                    pluginResult!.setKeepCallbackAs(true)
-                }
+            guard let subtitleData: Data = Data(base64Encoded: subtitleBase64String) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Subtitle to Data. Invalid base 64 string.")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
             }
-            task.resume()
+            
+            DispatchQueue.main.async {
+                let playerViewController = MindfulnessViewController()
+                playerViewController.loadMindfullnessVideosFromURL(videoArray:  videoArray,
+                                                                   audioArray: audioArray,
+                                                                   audioVoiceURL: audioVoiceURL,
+                                                                   subtitleData: subtitleData,
+                                                                   splashImageArr: splashImageDataArray,
+                                                                   secondsToSkip: secondsToSkip,
+                                                                   isLiked: isLiked)
+                { watchedTime, isLiked in
+                    playerViewController.pause()
+                    playerViewController.dismiss(animated: false, completion: nil)
+                    let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
+                    if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
+                       let json = String(data: jsonData, encoding: String.Encoding.ascii) {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    }
+                    else {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    }
+                }
+                
+                playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+                self.viewController.present(playerViewController, animated: false, completion: nil)
+                
+                pluginResult!.setKeepCallbackAs(true)
+            }
+            //            }
+            //            task.resume()
         } else {
             pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Missing input parameters")
             self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
@@ -71,51 +71,51 @@ import Foundation
     func loadBreathwork(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleURLString = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleBase64String = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
             guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
-                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
                 self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
                 return
             }
             
-            var subtitleData = Data()
-            guard let subtitleURL = URL.init(string: subtitleURLString) else {return}
-            
-            let task = URLSession.shared.dataTask(with: subtitleURL) {(data, response, error) in
-                guard let data = data else { return }
-                subtitleData = data
-                DispatchQueue.main.async {
-                    let playerViewController = MindfulnessViewController()
-                    playerViewController.loadBreathworkVideosFromURL(backgroundVideoURL:  backgroundVideoURL,
-                                                                     audioArray: audioArray,
-                                                                     audioVoiceURL: audioVoiceURL,
-                                                                     subtitleData: subtitleData,
-                                                                     splashImage: splashImageData,
-                                                                     secondsToSkip: secondsToSkip,
-                                                                     isLiked: isLiked)
-                    { watchedTime, isLiked in
-                        playerViewController.pause()
-                        playerViewController.dismiss(animated: false, completion: nil)
-                        let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
-                        if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
-                           let json = String(data: jsonData, encoding: String.Encoding.ascii) {
-                            pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
-                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                        }
-                        else {
-                            pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
-                            self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                        }
-                    }
-                    
-                    playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
-                    self.viewController.present(playerViewController, animated: false, completion: nil)
-                    
-                    pluginResult!.setKeepCallbackAs(true)
-                }
+            guard let subtitleData: Data = Data(base64Encoded: subtitleBase64String) else {
+                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Subtitle to Data. Invalid base 64 string.")
+                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                return
             }
-            task.resume()
+            
+            DispatchQueue.main.async {
+                let playerViewController = MindfulnessViewController()
+                playerViewController.loadBreathworkVideosFromURL(backgroundVideoURL:  backgroundVideoURL,
+                                                                 audioArray: audioArray,
+                                                                 audioVoiceURL: audioVoiceURL,
+                                                                 subtitleData: subtitleData,
+                                                                 splashImage: splashImageData,
+                                                                 secondsToSkip: secondsToSkip,
+                                                                 isLiked: isLiked)
+                { watchedTime, isLiked in
+                    playerViewController.pause()
+                    playerViewController.dismiss(animated: false, completion: nil)
+                    let returnDictionary = ["watchedTime": watchedTime, "isLiked": isLiked]
+                    if let jsonData = try? JSONSerialization.data( withJSONObject: returnDictionary, options: .prettyPrinted),
+                       let json = String(data: jsonData, encoding: String.Encoding.ascii) {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: json)
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    }
+                    else {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to serialize watchedTime and isLiked")
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                    }
+                }
+                
+                playerViewController.modalPresentationStyle = UIModalPresentationStyle.fullScreen
+                self.viewController.present(playerViewController, animated: false, completion: nil)
+                
+                pluginResult!.setKeepCallbackAs(true)
+            }
+            //            }
+            //            task.resume()
             
         } else {
             pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Missing input parameters")
@@ -531,3 +531,4 @@ import Foundation
         }
     }
 }
+
