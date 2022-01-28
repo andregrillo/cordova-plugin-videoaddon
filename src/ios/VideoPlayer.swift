@@ -71,7 +71,8 @@ import Foundation
     func loadBreathwork(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleBase64String = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        //remover o audioVoiceURL do JS
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleBase64String = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
             
             guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
                 pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
@@ -86,10 +87,10 @@ import Foundation
             }
             
             DispatchQueue.main.async {
-                let playerViewController = MindfulnessViewController()
-                playerViewController.loadBreathworkVideosFromURL(backgroundVideoURL:  backgroundVideoURL,
+                let playerViewController = BreathworkViewController()
+                playerViewController.loadBreathworkVideosFromURL(
+                                                                 backgroundVideoWithVoiceURL:  backgroundVideoURL,
                                                                  audioArray: audioArray,
-                                                                 audioVoiceURL: audioVoiceURL,
                                                                  subtitleData: subtitleData,
                                                                  splashImage: splashImageData,
                                                                  secondsToSkip: secondsToSkip,
@@ -316,7 +317,7 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let base64Image = command.arguments [0] as? String, let backgroundVideoFile = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let audioVoiceFile = command.arguments[3] as? String, let subtitleFile = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoFile = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleFile = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
             
             guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
                 pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
@@ -372,27 +373,6 @@ import Foundation
                 }
             }
             
-            var voiceData = Data()
-            let audioVoiceURL: URL = {
-                var url: URL!
-                let path = "file://\(libraryDirectory.path)/NoCloud/Files/\(audioVoiceFile)"
-                if let urlPath = URL(string: path) {
-                    url = urlPath
-                } else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error creating local directory using \(audioVoiceFile) as input")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                }
-                return url
-            }()
-            if FileManager.default.fileExists(atPath: audioVoiceURL.path){
-                do {
-                    voiceData = try Data.init(contentsOf: audioVoiceURL)
-                } catch {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Local voice audio file \(audioVoiceFile) not found")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                }
-            }
-            
             var subtitleData = Data()
             let subtitleURL: URL = {
                 var url: URL!
@@ -414,10 +394,9 @@ import Foundation
                 }
             }
             
-            let playerViewController = MindfulnessViewController()
-            playerViewController.loadBreathworkVideosFromData(backgroundVideoData: backgroundVideoData,
+            let playerViewController = BreathworkViewController()
+            playerViewController.loadBreathworkVideosFromData(backgroundVideoWithVoiceData: backgroundVideoData,
                                                               audioArray: audioDataArray,
-                                                              audioVoiceData: voiceData,
                                                               subtitleData: subtitleData,
                                                               splashImage: splashImageData,
                                                               secondsToSkip: secondsToSkip,

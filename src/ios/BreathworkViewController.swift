@@ -1,43 +1,32 @@
 //
-//  PlayerViewController.swift
+//  BreathworkViewController.swift
 //  OutsysVideoPOC
 //
-//  Created by WorldIT on 12/08/2021.
+//  Created by WorldIT on 24/01/2022.
 //
 
 import UIKit
 import AVKit
-class MindfulnessViewController: UIViewController {
+class BreathworkViewController: UIViewController {
 
-    private var audioVoice = AVPlayer()
-    
+        
     private var playerLayer:AVPlayerLayer?
-    private var playerLayer2:AVPlayerLayer?
-    private var playerLayer3:AVPlayerLayer?
     
-    private var mainVideoLooper: AVPlayerLooper?
-    private var mainVideo = AVQueuePlayer()
-    private var mainAudio = AVQueuePlayer()
-    private var mainAudioLooper: AVPlayerLooper?
+    private var mainAudioVideo = AVQueuePlayer()
    
-    private var secondVideoLooper: AVPlayerLooper?
-    private var secondVideo:AVQueuePlayer?
+    private var firstAudio = AVQueuePlayer()
+    private var firstAudioLooper: AVPlayerLooper?
+
     private var secondAudioLooper: AVPlayerLooper?
     private var secondAudio = AVQueuePlayer()
     
-    
-    private var thirdVideoLooper: AVPlayerLooper?
-    private var thirdVideo:AVQueuePlayer?
     private var thirdAudioLooper: AVPlayerLooper?
     private var thirdAudio = AVQueuePlayer()
        
     private var videoView:UIView!
     private var controlView:UIView!
     private var loadingView :UIView!
-    private var gifView:UIImageView?
-    private var gifTimer:Timer?
-    private var currentGifIndex = 0
-    private var maxGifIndex = 40
+  
     private var splashImage = [UIImage]()
     private var splashView:UIImageView?
     
@@ -66,10 +55,10 @@ class MindfulnessViewController: UIViewController {
     private var watchedTimeTimer:Timer?
     private var watchedTime = 0
 
-    private var videoArray:[String]?
+    private var videoURL:String?
     private var audioArray:[String]?
     
-    private var localVideoArray:[Data]?
+    private var localVideoData:Data?
     private var localAudioArray:[Data]?
     
     private var currentBackgroundVideoIndex = 0
@@ -96,12 +85,9 @@ class MindfulnessViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         self.playerLayer?.frame = self.view.bounds
-        self.playerLayer2?.frame = self.view.bounds
-        self.playerLayer3?.frame = self.view.bounds
         self.subtitleSwitch.layer.borderColor = UIColor.white.cgColor
         self.subtitleSwitch.layer.borderWidth = 1
         self.subtitleSwitch.layer.cornerRadius = self.subtitleSwitch.frame.height/2
-       // self.playBackground()
     }
     
     override func viewDidLoad() {
@@ -122,27 +108,19 @@ class MindfulnessViewController: UIViewController {
         
         watchedTimeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (_) in
            
-            if self.audioVoice.timeControlStatus == .playing {
+            if self.mainAudioVideo.timeControlStatus == .playing {
                 self.watchedTime += 1
-              //  print("TIME \(self.watchedTime)")
             }
             
         })
         
-//        gifTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true, block: { (_) in
-//            self.currentGifIndex = (self.currentGifIndex + 1) % self.maxGifIndex
-//            DispatchQueue.main.async {
-//                self.gifView?.image = UIImage(named: "Loader\(self.currentGifIndex)")
-//            }
-//
-//        })
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         self.watchedTimeTimer?.invalidate()
         self.closeTimer?.invalidate()
-        self.gifTimer?.invalidate()
+       
         if #available(iOS 13.0, *) {
             NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
         } else {
@@ -160,9 +138,9 @@ class MindfulnessViewController: UIViewController {
         NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.bottom, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.bottom, multiplier: 1, constant: 0).isActive = true
         NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1, constant: 0).isActive = true
         
+
+        splashView = UIImageView(image: splashImage[0])
         
-        splashView = UIImageView(image: splashImage[self.currentBackgroundVideoIndex])
-       
        
         splashView?.translatesAutoresizingMaskIntoConstraints = false
         splashView?.contentMode = .scaleAspectFill
@@ -173,15 +151,6 @@ class MindfulnessViewController: UIViewController {
         splashView?.rightAnchor.constraint(equalTo: self.loadingView.rightAnchor, constant: 0).isActive = true
         splashView?.bottomAnchor.constraint(equalTo: self.loadingView.bottomAnchor, constant: 0).isActive = true
   
-//        gifView = UIImageView(image: UIImage(named: "Loader0"))
-//        gifView?.translatesAutoresizingMaskIntoConstraints = false
-//        gifView?.contentMode = .scaleAspectFit
-//        loadingView.addSubview(gifView!)
-//        gifView?.centerXAnchor.constraint(equalTo: self.loadingView.centerXAnchor, constant: 0).isActive = true
-//        gifView?.centerYAnchor.constraint(equalTo: self.loadingView.centerYAnchor, constant: 0).isActive = true
-//        gifView?.widthAnchor.constraint(equalToConstant: 150).isActive = true
-//        gifView?.heightAnchor.constraint(equalToConstant: 150).isActive = true
-        
         self.videoView = UIView()
         videoView?.translatesAutoresizingMaskIntoConstraints = false
         videoView.backgroundColor = .clear
@@ -305,9 +274,9 @@ class MindfulnessViewController: UIViewController {
       
         pagerTopIcon.contentMode = .scaleAspectFit
        
-        pagerTopIcon.image = UIImage(named: "backAndImg")
-        pagerTopIcon.widthAnchor.constraint(equalToConstant: 35).isActive = true
-        pagerTopIcon.heightAnchor.constraint(equalToConstant: 35).isActive = true
+        pagerTopIcon.image = UIImage(named: "soundIcon")
+        pagerTopIcon.widthAnchor.constraint(equalToConstant: 25).isActive = true
+        pagerTopIcon.heightAnchor.constraint(equalToConstant: 25).isActive = true
         
         
         audioSliderView = UIView()
@@ -442,187 +411,163 @@ class MindfulnessViewController: UIViewController {
         }
        
     }
+    
     /// Loads videos passed in params with URLs.
     ///
-    /// - Warning: The number os items in video array shoud be equal to the number os items un audioArray
-    /// - Parameter videoArray: Array of string with background video url
+    /// - Parameter backgroundVideoWithVoiceURL: String to the background video with narration
     /// - Parameter audioArray: Array of string with background audio url
     /// - Parameter audioVoiceURL:String to the narration audio
     /// - Parameter subtitleData:Data to the subtitles file (.srt)
-    /// - Parameter splashImageArr: Array of data with the images shown while loading
+    /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImageArr:[Data], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
-        self.videoArray = videoArray
+        self.videoURL = backgroundVideoWithVoiceURL
         self.audioArray = audioArray
         self.watchedTime = 0
+       
+        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
         
-        for splash in splashImageArr {
-            self.splashImage.append(UIImage(data: splash) ?? UIImage())
-        }
-
         self.createScreen()
-        
         self.likeBtn.isSelected = isLiked
         
-        self.maxVideos = videoArray.count
-        self.pageIndicator.numberOfPages = videoArray.count
+        self.maxVideos = audioArray.count
+        self.pageIndicator.numberOfPages = audioArray.count
         self.secondsToSkip = secondsToSkip
         
         if secondsToSkip > 0 {
             self.addSkipButton()
         }
-        
+
+       
         //load videos and audios
-        self.loadRemoteBackgroundPlayers()
-        self.switchVideo()
+        let playerItem = AVPlayerItem(url: URL(string: videoURL!)!)
+        playerItem.preferredForwardBufferDuration = TimeInterval(30)
+        mainAudioVideo = AVQueuePlayer(items: [playerItem])
+        mainAudioVideo.automaticallyWaitsToMinimizeStalling = true
+        mainAudioVideo.volume = audioSlider?.value ?? 0.0
+        
+        //video player
+        playerLayer = AVPlayerLayer(player: mainAudioVideo)
+        playerLayer?.videoGravity = .resizeAspectFill;
+        playerLayer?.isHidden = false
+        self.videoView.layer.addSublayer(playerLayer!)
+        
+        self.loadRemoteBackgroundAudioPlayers()
+        self.switchAudio()
         self.view.bringSubviewToFront(self.controlView)
         
-        //MARK: Audio voice setup
-        if let url = URL(string:audioVoiceURL) {
-            audioVoice = AVPlayer(url: url)
-        }
-        audioVoice.automaticallyWaitsToMinimizeStalling = true
+      
         
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
 
-        audioVoice.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
+        mainAudioVideo.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
            
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
            
-            print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched{
-                self.seekerSlider.setValue(Float(time.seconds), animated: true)
-            }
-            
-            if Int(self.audioVoice.currentTime().seconds.rounded()) >= self.secondsToSkip {
-                self.skipBtn?.isHidden = true
-            }
-          
-        }
-
-        audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-      
-        //MARK: Subtitle setup
-        self.addSubtitles().open(fromData: subtitleData, player: audioVoice)
-      
-    }
-    
-    /// Loads videos passed in params from Data.
-    /// Videos will be saved temporarily on the phone, videos will be saved as .mp4 and audios as .mp3
-    ///
-    /// - Warning: The number os items in video array shoud be equal to the number os items in audioArray
-    /// - Parameter videoArray: Array of data with background video url
-    /// - Parameter audioArray: Array of data with background audio url
-    /// - Parameter audioVoiceData:Data to the narration audio
-    /// - Parameter subtitleData:Data to the subtitles file (.srt)
-    /// - Parameter splashImageArr: Array of data with the images shown while loading
-    /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
-    /// - Parameter isLiked: True of False if the video was previously liked
-    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImageArr:[Data], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
-        self.callback = callback
-        self.localVideoArray = videoArray
-        self.localAudioArray = audioArray
-        self.watchedTime = 0
-        self.isStreaming = false
-        
-        for splash in splashImageArr {
-            self.splashImage.append(UIImage(data: splash) ?? UIImage())
-        }
-        
-        self.createScreen()
-        
-        self.likeBtn.isSelected = isLiked
-        
-        self.maxVideos = videoArray.count
-        self.pageIndicator.numberOfPages = videoArray.count
-        self.secondsToSkip = secondsToSkip
-        
-        if secondsToSkip > 0 {
-            self.addSkipButton()
-        }
-        
-        self.loadLocalBackgroundPlayers()
-        self.switchVideo()
-
-        self.view.bringSubviewToFront(self.controlView)
-        
-        //MARK: Audio voice setup
-        try? audioVoiceData.write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("audiovoice.mp3"))
-        let urlAudioVoice = URL(fileURLWithPath: NSTemporaryDirectory() + "/audiovoice.mp3")
-        audioVoice = AVPlayer(url: urlAudioVoice)
-        
-        
-        audioVoice.automaticallyWaitsToMinimizeStalling = true
-
-        let timeScale = CMTimeScale(NSEC_PER_SEC)
-        let time = CMTime(seconds: 1, preferredTimescale: timeScale)
-
-        audioVoice.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
-
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
-
             print(time.seconds)
             if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
                 self.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
+            
+            if Int(self.mainAudioVideo.currentTime().seconds.rounded()) >= self.secondsToSkip {
+                self.skipBtn?.isHidden = true
+            }
+          
+        }
 
-            if Int(self.audioVoice.currentTime().seconds.rounded()) >= self.secondsToSkip {
+        mainAudioVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+       
+        //MARK: Subtitle setup
+        self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo)
+    }
+
+    /// Loads videos passed in params from Data.
+    /// Videos will be saved temporarily on the phone, videos will be saved as .mp4 and audios as .mp3
+    ///
+    /// - Parameter backgroundVideoWithVoiceData: String to the background video with narration
+    /// - Parameter audioArray: Array of data with background audio url
+    /// - Parameter subtitleData:Data to the subtitles file (.srt)
+    /// - Parameter splashImage: Data with the image shown while loading
+    /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
+    /// - Parameter isLiked: True of False if the video was previously liked
+    /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
+    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+        self.callback = callback
+        self.localVideoData = backgroundVideoWithVoiceData
+        self.localAudioArray = audioArray
+        self.watchedTime = 0
+        self.isStreaming = false
+        
+        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
+        
+        self.createScreen()
+        self.likeBtn.isSelected = isLiked
+        
+        self.maxVideos = audioArray.count
+        self.pageIndicator.numberOfPages = audioArray.count
+        self.secondsToSkip = secondsToSkip
+        
+        if secondsToSkip > 0 {
+            self.addSkipButton()
+        }
+        
+        try? localVideoData!.write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainvideo.mp4"))
+        let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
+        let playerItem = AVPlayerItem(url: urlVideo)
+        mainAudioVideo = AVQueuePlayer(items: [playerItem])
+        mainAudioVideo.volume = audioSlider?.value ?? 0.0
+        mainAudioVideo.automaticallyWaitsToMinimizeStalling = true
+        
+        //video player
+        playerLayer = AVPlayerLayer(player: mainAudioVideo)
+        playerLayer?.videoGravity = .resizeAspectFill;
+        playerLayer?.isHidden = false
+        self.videoView.layer.addSublayer(playerLayer!)
+        
+        self.loadLocalBackgroundPlayers()
+        self.switchAudio()
+        self.view.bringSubviewToFront(self.controlView)
+        
+
+        let timeScale = CMTimeScale(NSEC_PER_SEC)
+        let time = CMTime(seconds: 1, preferredTimescale: timeScale)
+
+        mainAudioVideo.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
+
+            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+
+            print(time.seconds)
+            if Int(time.seconds) < Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
+                self.seekerSlider.setValue(Float(time.seconds), animated: true)
+            }
+
+            if Int(self.mainAudioVideo.currentTime().seconds.rounded()) >= self.secondsToSkip {
                 self.skipBtn?.isHidden = true
             }
             
         }
 
-        audioVoice.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
-        
+        mainAudioVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+       
 //        //MARK: Subtitle setup
 
-        self.addSubtitles().open(fromData: subtitleData, player: audioVoice)
+        self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo)
         
     }
     
-    private func loadRemoteBackgroundPlayers() {
+    private func loadRemoteBackgroundAudioPlayers() {
         //MARK: Main player setup
-        let playerItem = AVPlayerItem(url: URL(string: videoArray![0])!)
-        playerItem.preferredForwardBufferDuration = TimeInterval(30)
-        mainVideo = AVQueuePlayer(items: [playerItem])
-        mainVideo.automaticallyWaitsToMinimizeStalling = true
-        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
-        mainVideo.volume = 0
-        
-    
         let playerAudioItem = AVPlayerItem(url: URL(string: audioArray![0])!)
-        mainAudio = AVQueuePlayer(items: [playerAudioItem])
-        mainAudioLooper = AVPlayerLooper(player: mainAudio, templateItem: playerAudioItem)
-        mainAudio.automaticallyWaitsToMinimizeStalling = true
+        firstAudio = AVQueuePlayer(items: [playerAudioItem])
+        firstAudioLooper = AVPlayerLooper(player: firstAudio, templateItem: playerAudioItem)
+        firstAudio.automaticallyWaitsToMinimizeStalling = true
 
-        //video player
-        playerLayer = AVPlayerLayer(player: mainVideo)
-        playerLayer?.videoGravity = .resizeAspectFill;
-        playerLayer?.isHidden = true
-        self.videoView.layer.addSublayer(playerLayer!)
         
         //MARK: Second player setup
-        if videoArray!.count > 1 {
-            let pi2 = AVPlayerItem(url: URL(string: videoArray![1])!)
-            pi2.preferredForwardBufferDuration = TimeInterval(30)
-            secondVideo = AVQueuePlayer(items: [pi2])
-            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
-           
-            secondVideo?.automaticallyWaitsToMinimizeStalling = true
-            secondVideo?.volume = 0
-          
-            //second video player
-            playerLayer2 = AVPlayerLayer(player: secondVideo)
-            playerLayer2?.isHidden = true
-            playerLayer2?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(playerLayer2!)
-            
-        }
         if audioArray!.count > 1 {
             //second audio player
             let pai2 = AVPlayerItem(url: URL(string: audioArray![1])!)
@@ -632,22 +577,6 @@ class MindfulnessViewController: UIViewController {
         }
         
         //MARK: Third player setup
-        if videoArray!.count > 2 {
-
-            let pi3 = AVPlayerItem(url: URL(string: videoArray![2])!)
-            pi3.preferredForwardBufferDuration = TimeInterval(30)
-            thirdVideo = AVQueuePlayer(items: [pi3])
-            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
-           
-            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
-            thirdVideo?.volume = 0
-          
-            //third video player
-            playerLayer3 = AVPlayerLayer(player: thirdVideo)
-            playerLayer3?.isHidden = true
-            playerLayer3?.videoGravity = .resizeAspectFill;
-            self.videoView?.layer.addSublayer(playerLayer3!)
-        }
         if audioArray!.count > 2 {
             //third audio player
             let pai3 = AVPlayerItem(url: URL(string: audioArray![2])!)
@@ -659,48 +588,16 @@ class MindfulnessViewController: UIViewController {
     
     private func loadLocalBackgroundPlayers() {
         //MARK: Main player setup
-        
-        try? localVideoArray![0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainvideo.mp4"))
         try? localAudioArray![0].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("mainaudio.mp3"))
-        let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
-        let playerItem = AVPlayerItem(url: urlVideo)
-        mainVideo = AVQueuePlayer(items: [playerItem])
-        mainVideoLooper = AVPlayerLooper(player: mainVideo, templateItem: playerItem)
-        mainVideo.volume = 0
-        mainVideo.automaticallyWaitsToMinimizeStalling = true
+       
         let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainaudio.mp3")
         let playerAudioItem = AVPlayerItem(url: urlAudio)
-        mainAudio = AVQueuePlayer(items: [playerAudioItem])
-        mainAudioLooper = AVPlayerLooper(player: mainAudio, templateItem: playerAudioItem)
-        mainAudio.automaticallyWaitsToMinimizeStalling = true
-           
-        //video player
-        playerLayer = AVPlayerLayer(player: mainVideo)
-        playerLayer?.videoGravity = .resizeAspectFill;
-        playerLayer?.isHidden = true
-        self.videoView?.layer.addSublayer(playerLayer!)
-       
+        firstAudio = AVQueuePlayer(items: [playerAudioItem])
+        firstAudioLooper = AVPlayerLooper(player: firstAudio, templateItem: playerAudioItem)
+        firstAudio.automaticallyWaitsToMinimizeStalling = true
+    
         
         //MARK: Second player setup
-        if localVideoArray!.count > 1{
-            
-            try? localVideoArray![1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondvideo.mp4"))
-          
-            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondvideo.mp4")
-            let pi2 = AVPlayerItem(url: urlVideo)
-            secondVideo = AVQueuePlayer(items: [pi2])
-            secondVideoLooper = AVPlayerLooper(player: secondVideo!, templateItem: pi2)
-            secondVideo?.automaticallyWaitsToMinimizeStalling = true
-            secondVideo?.volume = 0
-            
-            //second video player
-            playerLayer2 = AVPlayerLayer(player: secondVideo)
-            playerLayer2?.isHidden = true
-            playerLayer2?.videoGravity = .resizeAspectFill;
-            self.videoView.layer.addSublayer(playerLayer2!)
-
-        }
-        
         if localAudioArray!.count > 1 {
             try? localAudioArray![1].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("secondaudio.mp3"))
             let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondaudio.mp3")
@@ -710,25 +607,7 @@ class MindfulnessViewController: UIViewController {
             secondAudio.automaticallyWaitsToMinimizeStalling = true
         }
         
-        
         //MARK: Third player setup
-        if localVideoArray!.count > 2 {
-            try? localVideoArray![2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdvideo.mp4"))
-            let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdvideo.mp4")
-            let pi3 = AVPlayerItem(url: urlVideo)
-            thirdVideo = AVQueuePlayer(items: [pi3])
-            thirdVideoLooper = AVPlayerLooper(player: thirdVideo!, templateItem: pi3)
-            thirdVideo?.automaticallyWaitsToMinimizeStalling = true
-            thirdVideo?.volume = 0
-            
-            //third video player
-            playerLayer3 = AVPlayerLayer(player: thirdVideo)
-            playerLayer3?.isHidden = true
-            playerLayer3?.videoGravity = .resizeAspectFill;
-            self.videoView.layer.addSublayer(playerLayer3!)
-          
-            
-        }
         if localAudioArray!.count > 2 {
             try? localAudioArray![2].write(to: URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("thirdaudio.mp3"))
             
@@ -774,7 +653,7 @@ class MindfulnessViewController: UIViewController {
         self.stopBackground()
         closeTimer?.invalidate()
         self.pause()
-        let maxTime = (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()
+        let maxTime = (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()
         
         self.callback?(self.watchedTime >= (Int(maxTime) * 80 / 100), self.likeBtn.isSelected)
         
@@ -794,8 +673,8 @@ class MindfulnessViewController: UIViewController {
         self.currentBackgroundVideoIndex = (self.currentBackgroundVideoIndex  + 1) % self.maxVideos
         self.pageIndicator.currentPage = self.currentBackgroundVideoIndex
         
-       
-        self.switchVideo()
+
+        self.switchAudio()
         
         
         if self.controlView.alpha == 1 {
@@ -815,8 +694,8 @@ class MindfulnessViewController: UIViewController {
             self.currentBackgroundVideoIndex = self.maxVideos - 1
         }
         self.pageIndicator.currentPage = self.currentBackgroundVideoIndex
-        
-        self.switchVideo()
+       
+        self.switchAudio()
         
          
         if self.controlView.alpha == 1 {
@@ -863,8 +742,7 @@ class MindfulnessViewController: UIViewController {
     }
     
     @objc func playerDidFinishPlaying(_ notification: Notification) {
-      
-        if self.audioVoice.currentTime().seconds.rounded() >= (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded() {
+        if self.mainAudioVideo.currentTime().seconds.rounded() >= (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded() {
             self.closeClick()
         }
     }
@@ -898,9 +776,9 @@ class MindfulnessViewController: UIViewController {
     }
     @objc func moveForwardClick(_ sender:UIButton){
 
-        let playerCurrentTime = CMTimeGetSeconds(audioVoice.currentTime())
+        let playerCurrentTime = CMTimeGetSeconds(mainAudioVideo.currentTime())
         let time:CMTime = CMTimeMake(value: Int64(playerCurrentTime + 15), timescale: 1)
-        audioVoice.seek(to: time)
+        mainAudioVideo.seek(to: time)
         
         closeTimer?.invalidate()
         if self.playPauseBtn.isSelected {
@@ -908,9 +786,9 @@ class MindfulnessViewController: UIViewController {
         }
     }
     @objc func moveBackClick(_ sender:UIButton){
-        let playerCurrentTime = CMTimeGetSeconds(audioVoice.currentTime())
+        let playerCurrentTime = CMTimeGetSeconds(mainAudioVideo.currentTime())
         let time:CMTime = CMTimeMake(value: Int64(playerCurrentTime - 15), timescale: 1)
-        audioVoice.seek(to: time)
+        mainAudioVideo.seek(to: time)
         
         closeTimer?.invalidate()
         if self.playPauseBtn.isSelected {
@@ -919,23 +797,23 @@ class MindfulnessViewController: UIViewController {
     }
     @objc func sliderValueDidChange(_ sender:UISlider){
         if sender.tag == 1 {
-            audioVoice.volume = audioSlider?.value ?? 0.0
+            mainAudioVideo.volume = audioSlider?.value ?? 0.0
             
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.mainAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.firstAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
                 self.secondAudio.volume = 0
                 self.thirdAudio.volume = 0
-                print(mainAudio.volume)
+                print(firstAudio.volume)
                 break
             case 1:
-                self.mainAudio.volume = 0
+                self.firstAudio.volume = 0
                 self.secondAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
                 self.thirdAudio.volume = 0
                 print(secondAudio.volume)
                 break
             case 2:
-                self.mainAudio.volume = 0
+                self.firstAudio.volume = 0
                 self.secondAudio.volume = 0
                 self.thirdAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
                 print(thirdAudio.volume)
@@ -945,13 +823,13 @@ class MindfulnessViewController: UIViewController {
             }
             
            
-            print(audioVoice.volume)
+            print(mainAudioVideo.volume)
         }
         else if sender.tag == 2 {
             self.seekerTouched = true
             let seconds : Int64 = Int64(sender.value)
             let time:CMTime = CMTimeMake(value: seconds, timescale: 1)
-            audioVoice.seek(to: time)
+            mainAudioVideo.seek(to: time)
             
           
         }
@@ -977,7 +855,7 @@ class MindfulnessViewController: UIViewController {
     
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         // Only handle observations for the playerItemContext
-        guard (object as? AVPlayer) == self.mainVideo || (object as? AVPlayer) == self.mainAudio || (object as? AVPlayer) == self.audioVoice  else {
+        guard (object as? AVPlayer) == self.mainAudioVideo else {
               super.observeValue(forKeyPath: keyPath,
                                  of: object,
                                  change: change,
@@ -990,9 +868,8 @@ class MindfulnessViewController: UIViewController {
               // Switch over status value
             switch player.status {
               case .readyToPlay:
-                if player == audioVoice {
-                    print("a")
-                    self.audioVoice.preroll(atRate: 1) { (audioFinished2) in
+                if player == mainAudioVideo {
+                    self.mainAudioVideo.preroll(atRate: 1) { (audioFinished2) in
                         print("a1 preroll \(audioFinished2)")
                         if audioFinished2 {
                             self.playPauseBtn.isSelected = true
@@ -1019,11 +896,11 @@ class MindfulnessViewController: UIViewController {
     func play(shoudHide5Sec:Bool = false) {
         print("play")
         self.playBackground()
-        self.audioVoice.play()
-        self.audioVoice.volume = self.audioSlider?.value ?? 0.0
-        if let a = audioVoice.currentItem?.asset.duration {
+        self.mainAudioVideo.play()
+        self.mainAudioVideo.volume = self.audioSlider?.value ?? 0.0
+        if let a = mainAudioVideo.currentItem?.asset.duration {
             seekerSlider?.maximumValue = Float(a.seconds)
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
         }
        
         if shoudHide5Sec {
@@ -1037,7 +914,7 @@ class MindfulnessViewController: UIViewController {
     func pause(){
         print("pause)")
         self.stopBackground()
-        self.audioVoice.pause()
+        self.mainAudioVideo.pause()
         self.playPauseBtn.isSelected = false
         closeTimer?.invalidate()
         self.showControls()
@@ -1045,22 +922,15 @@ class MindfulnessViewController: UIViewController {
     
     @objc func appDidEnterBackground() {
        // self.pause()
-               
-        playerLayer?.removeFromSuperlayer()
-        playerLayer2?.removeFromSuperlayer()
-        playerLayer3?.removeFromSuperlayer()
-        
-        self.playerLayer = nil
-        self.playerLayer2 = nil
-        self.playerLayer3 = nil
-        self.audioVoice.pause()
+        self.mainAudioVideo.pause()
+        self.stopBackground()
     }
     @objc func appDidEnterForeground() {
         DispatchQueue.main.async {
             if self.isStreaming {
                 self.stopBackground()
                 
-                self.loadRemoteBackgroundPlayers()
+                self.loadRemoteBackgroundAudioPlayers()
                 
             }
             else {
@@ -1075,19 +945,20 @@ class MindfulnessViewController: UIViewController {
             self.viewDidLayoutSubviews()
         
 
-            
-            self.switchVideo()
-            
+          
+            self.playerLayer?.isHidden = false
+            self.switchAudio()
+        
         
             if self.playPauseBtn.isSelected {
-                let seconds : Int64 = Int64(max(self.audioVoice.currentTime().seconds - 5, 0))
+                let seconds : Int64 = Int64(max(self.mainAudioVideo.currentTime().seconds - 5, 0))
                 let time:CMTime = CMTimeMake(value: seconds, timescale: 1)
-                self.audioVoice.seek(to: time)
-                self.audioVoice.play()
+                self.mainAudioVideo.seek(to: time)
+                self.mainAudioVideo.play()
                 self.playBackground()
             }
-
-            if !self.isStreaming && self.audioVoice.currentTime().seconds.rounded() >= (self.audioVoice.currentItem?.asset.duration.seconds ?? 0.0).rounded() {
+            
+            if !self.isStreaming && self.mainAudioVideo.currentTime().seconds.rounded() >= (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded(){
                 self.closeClick()
             }
         }
@@ -1095,25 +966,21 @@ class MindfulnessViewController: UIViewController {
     }
     @objc func playBackground(){
         DispatchQueue.main.async {
-            self.mainVideo.play()
-            self.mainAudio.play()
-            self.secondVideo?.play()
+            self.mainAudioVideo.play()
+            self.firstAudio.play()
             self.secondAudio.play()
-            self.thirdVideo?.play()
             self.thirdAudio.play()
             
-         
-            self.switchVideo()
+        
+            self.switchAudio()
+            
            
         }
       
     }
     func stopBackground(){
-        self.mainVideo.pause()
-        self.mainAudio.pause()
-        self.secondVideo?.pause()
+        self.firstAudio.pause()
         self.secondAudio.pause()
-        self.thirdVideo?.pause()
         self.thirdAudio.pause()
     }
     
@@ -1121,61 +988,26 @@ class MindfulnessViewController: UIViewController {
         
         self.currentBackgroundVideoIndex = self.pageIndicator.currentPage
         
-        
-        self.switchVideo()
+        self.switchAudio()
         
     }
     
-    func switchVideo() {
-        DispatchQueue.main.async {
-            self.splashView?.image = self.splashImage[self.currentBackgroundVideoIndex]
-            switch self.currentBackgroundVideoIndex {
-            case 0:
-                self.playerLayer?.isHidden = false
-                self.playerLayer2?.isHidden = true
-                self.playerLayer3?.isHidden = true
-                self.mainAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                self.secondAudio.volume = 0
-                self.thirdAudio.volume = 0
-                break
-            case 1:
-                self.playerLayer?.isHidden = true
-                self.playerLayer2?.isHidden = false
-                self.playerLayer3?.isHidden = true
-                self.mainAudio.volume = 0
-                self.secondAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                self.thirdAudio.volume = 0
-                break
-            case 2:
-                self.playerLayer?.isHidden = true
-                self.playerLayer2?.isHidden = true
-                self.playerLayer3?.isHidden = false
-                self.mainAudio.volume = 0
-                self.secondAudio.volume = 0
-                self.thirdAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                break
-            default:
-                break
-            }
-        }
-       
-    }
     
     func switchAudio() {
         DispatchQueue.main.async {
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.mainAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.firstAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
                 self.secondAudio.volume = 0
                 self.thirdAudio.volume = 0
                 break
             case 1:
-                self.mainAudio.volume = 0
+                self.firstAudio.volume = 0
                 self.secondAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
                 self.thirdAudio.volume = 0
                 break
             case 2:
-                self.mainAudio.volume = 0
+                self.firstAudio.volume = 0
                 self.secondAudio.volume = 0
                 self.thirdAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
                 break
@@ -1187,10 +1019,10 @@ class MindfulnessViewController: UIViewController {
     }
     
     @objc func skipIntro(sender:UIButton) {
-        if self.secondsToSkip > 0 && self.audioVoice.status == .readyToPlay {
+        if self.secondsToSkip > 0 && self.mainAudioVideo.status == .readyToPlay {
             let seconds : Int64 = Int64(self.secondsToSkip)
             let time:CMTime = CMTimeMake(value: seconds, timescale: 1)
-            audioVoice.seek(to: time)
+            mainAudioVideo.seek(to: time)
             self.watchedTime = self.secondsToSkip
         }
     }
@@ -1214,4 +1046,5 @@ class MindfulnessViewController: UIViewController {
         
     }
 }
+
 

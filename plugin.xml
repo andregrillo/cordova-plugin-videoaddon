@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="cordova-plugin-videoaddon" version="1.5.1"
+<plugin id="cordova-plugin-videoaddon" version="1.5.2"
 	xmlns="http://apache.org/cordova/ns/plugins/1.0"
 	xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>cordova-plugin-videoaddon</name>
@@ -15,6 +15,7 @@
 		<source-file src="src/ios/VideoPlayer.swift" />
 		<source-file src="src/ios/DeskercisesViewController.swift" />
 		<source-file src="src/ios/MindfulnessViewController.swift" />
+		<source-file src="src/ios/BreathworkViewController.swift" />
 		<source-file src="src/ios/Subtitles.swift" />
 
 		<!-- iOS Resource Files -->

@@ -170,7 +170,7 @@ class DeskercisesViewController: UIViewController {
         likeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         likeBtn.addTarget(self, action: #selector(setLikeClick(_:)), for: .touchUpInside)
-        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
+        likeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 13).isActive = true
         likeBtn.leadingAnchor.constraint(equalTo: self.controlView.leadingAnchor, constant: 26).isActive = true
         
         let closeBtn = UIButton()
@@ -182,7 +182,7 @@ class DeskercisesViewController: UIViewController {
         closeBtn.widthAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.heightAnchor.constraint(equalToConstant: 35).isActive = true
         closeBtn.addTarget(self, action: #selector(closeClick), for: .touchUpInside)
-        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 16).isActive = true
+        closeBtn.topAnchor.constraint(equalTo: self.controlView.safeAreaLayoutGuide.topAnchor, constant: 13).isActive = true
         closeBtn.trailingAnchor.constraint(equalTo: self.controlView.trailingAnchor, constant: -26).isActive = true
         
         labelBgView = UIView()
@@ -199,7 +199,7 @@ class DeskercisesViewController: UIViewController {
         topLabel.adjustsFontSizeToFitWidth = true
         topLabel.textAlignment = .center
         self.controlView.addSubview(topLabel)
-        topLabel.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 1).isActive = true
+        topLabel.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 2).isActive = true
         topLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         topLabel.leadingAnchor.constraint(greaterThanOrEqualTo: likeBtn.trailingAnchor, constant: 8).isActive = true
         topLabel.trailingAnchor.constraint(lessThanOrEqualTo: closeBtn.leadingAnchor, constant: -8).isActive = true
@@ -210,15 +210,15 @@ class DeskercisesViewController: UIViewController {
         topLabel.trailingAnchor.constraint(equalTo: labelBgView.trailingAnchor,constant:  -6).isActive = true
         topLabel.bottomAnchor.constraint(equalTo: labelBgView.bottomAnchor,constant:  0).isActive = true
 //        topLabel.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        let v = UIView()
-        v.backgroundColor = .green
-        v.translatesAutoresizingMaskIntoConstraints = false
-        self.controlView.addSubview(v)
-        v.heightAnchor.constraint(equalToConstant: 1).isActive = true
-        v.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 0).isActive = true
-        v.trailingAnchor.constraint(equalTo: closeBtn.leadingAnchor,constant:  0).isActive = true
-        v.leadingAnchor.constraint(equalTo: likeBtn.trailingAnchor,constant:  0).isActive = true
-        
+//        let v = UIView()
+//        v.backgroundColor = .green
+//        v.translatesAutoresizingMaskIntoConstraints = false
+//        self.controlView.addSubview(v)
+//        v.heightAnchor.constraint(equalToConstant: 1).isActive = true
+//        v.centerYAnchor.constraint(equalTo: closeBtn.centerYAnchor, constant: 0).isActive = true
+//        v.trailingAnchor.constraint(equalTo: closeBtn.leadingAnchor,constant:  0).isActive = true
+//        v.leadingAnchor.constraint(equalTo: likeBtn.trailingAnchor,constant:  0).isActive = true
+//
         let swipeLabel = UILabel()
         swipeLabel.translatesAutoresizingMaskIntoConstraints = false
         swipeLabel.font = UIFont(name: "Biryani-SemiBold", size: 16)
@@ -597,7 +597,10 @@ class DeskercisesViewController: UIViewController {
     
     @objc func appDidEnterBackground() {
        // self.pause()
-               
+        self.mainVideo.pause()
+        self.secondVideo?.pause()
+        self.thirdVideo?.pause()
+        
         playerLayer?.removeFromSuperlayer()
         playerLayer2?.removeFromSuperlayer()
         playerLayer3?.removeFromSuperlayer()
@@ -607,49 +610,38 @@ class DeskercisesViewController: UIViewController {
         self.playerLayer3 = nil
     }
     @objc func appDidEnterForeground() {
-        
-        if isStreaming {
-            self.mainVideo.pause()
-            self.secondVideo?.pause()
-            self.thirdVideo?.pause()
-            self.loadRemoteBackgroundPlayers()
-        }
-        else {
-            self.mainVideo.pause()
-            self.secondVideo?.pause()
-            self.thirdVideo?.pause()
-            self.loadLocalBackgroundPlayers()
-//            self.playerLayer = AVPlayerLayer(player: self.mainVideo)
-//            self.playerLayer?.isHidden = false
-//            self.playerLayer?.videoGravity = .resizeAspectFill;
-//            self.videoView?.layer.addSublayer(self.playerLayer!)
-//
-//            if self.secondVideo != nil {
-//                self.playerLayer2 = AVPlayerLayer(player: self.secondVideo)
-//                self.playerLayer2?.isHidden = true
-//                self.playerLayer2?.videoGravity = .resizeAspectFill;
-//                self.videoView?.layer.addSublayer(self.playerLayer2!)
-//            }
-//
-//            if self.thirdVideo != nil {
-//                self.playerLayer3 = AVPlayerLayer(player: self.thirdVideo)
-//                self.playerLayer3?.isHidden = true
-//                self.playerLayer3?.videoGravity = .resizeAspectFill;
-//                self.videoView?.layer.addSublayer(self.playerLayer3!)
-//            }
-        }
-       
-        self.viewDidLayoutSubviews()
-    
+        DispatchQueue.main.async {
+            if self.isStreaming {
+                self.mainVideo.pause()
+                self.secondVideo?.pause()
+                self.thirdVideo?.pause()
+               
+                self.loadRemoteBackgroundPlayers()
+                
+               
+            }
+            else {
+                self.mainVideo.pause()
+                self.secondVideo?.pause()
+                self.thirdVideo?.pause()
+              
+                self.loadLocalBackgroundPlayers()
+               
+            }
+           
+            self.viewDidLayoutSubviews()
 
-        self.switchVideo()
-    
-        
-        self.playBackground()
-        
+            self.switchVideo()
+            
+            self.playBackground()
+            
+        }
 
     }
-    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        print("appear")
+    }
     @objc func playBackground(){
         DispatchQueue.main.async {
             self.mainVideo.play()
