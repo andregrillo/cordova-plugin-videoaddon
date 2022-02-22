@@ -16,14 +16,17 @@ import Foundation
         if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleBase64String = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
             var splashImageDataArray: [Data] = []
-            for base64Image in base64Images {
-                guard let imageData = convertBase64ToData(base64String: base64Image) else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    return
+            if base64Images[0] != "NoPosters" {
+                for base64Image in base64Images {
+                    guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        return
+                    }
+                    splashImageDataArray.append(imageData)
                 }
-                splashImageDataArray.append(imageData)
             }
+            
             guard let subtitleData: Data = Data(base64Encoded: subtitleBase64String) else {
                 pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Subtitle to Data. Invalid base 64 string.")
                 self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
@@ -74,11 +77,20 @@ import Foundation
         //remover o audioVoiceURL do JS
         if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleBase64String = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
             
-            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
-                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
-                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                return
+            var splashImageData: Data!
+            if base64Image != "NoPosters" {
+                splashImageData = convertBase64ToData(base64String: base64Image)
+                if splashImageData == nil {
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
+                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                }
             }
+            
+//            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+//                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
+//                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+//                return
+//            }
             
             guard let subtitleData: Data = Data(base64Encoded: subtitleBase64String) else {
                 pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Subtitle to Data. Invalid base 64 string.")
@@ -131,14 +143,26 @@ import Foundation
         if let base64Images = command.arguments [0] as? [String], let videoArrayURL = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
             
             var splashImageDataArray: [Data] = []
-            for base64Image in base64Images {
-                guard let imageData = convertBase64ToData(base64String: base64Image) else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    return
+            if base64Images[0] != "NoPosters" {
+                for base64Image in base64Images {
+                    guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        return
+                    }
+                    splashImageDataArray.append(imageData)
                 }
-                splashImageDataArray.append(imageData)
             }
+            
+//            var splashImageDataArray: [Data] = []
+//            for base64Image in base64Images {
+//                guard let imageData = convertBase64ToData(base64String: base64Image) else {
+//                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+//                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+//                    return
+//                }
+//                splashImageDataArray.append(imageData)
+//            }
             
             let playerViewController = DeskercisesViewController()
             playerViewController.loadDeskercisesVideosFromURL(videoArray: videoArrayURL,
@@ -178,14 +202,26 @@ import Foundation
         if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let voice = command.arguments[3] as? String, let subtitle = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
             
             var splashImageDataArray: [Data] = []
-            for base64Image in base64Images {
-                guard let imageData = convertBase64ToData(base64String: base64Image) else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    return
+            if base64Images[0] != "NoPosters" {
+                for base64Image in base64Images {
+                    guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        return
+                    }
+                    splashImageDataArray.append(imageData)
                 }
-                splashImageDataArray.append(imageData)
             }
+        
+//            var splashImageDataArray: [Data] = []
+//            for base64Image in base64Images {
+//                guard let imageData = convertBase64ToData(base64String: base64Image) else {
+//                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+//                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+//                    return
+//                }
+//                splashImageDataArray.append(imageData)
+//            }
             
             var videoDataArray = [Data]()
             //Loads local Video files into array as Data Objects
@@ -319,11 +355,20 @@ import Foundation
         
         if let base64Image = command.arguments [0] as? String, let backgroundVideoFile = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleFile = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
             
-            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
-                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
-                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                return
+            var splashImageData: Data!
+            if base64Image != "NoPosters" {
+                splashImageData = convertBase64ToData(base64String: base64Image)
+                if splashImageData == nil {
+                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
+                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                }
             }
+            
+//            guard let splashImageData = convertBase64ToData(base64String: base64Image) else {
+//                pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Invalid Splash image")
+//                self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+//                return
+//            }
             
             var backgroundVideoData = Data()
             let backgroundVideoURL: URL = {
@@ -435,14 +480,26 @@ import Foundation
         if let base64Images = command.arguments [0] as? [String], let videoFilesArray = command.arguments[1] as? [String], let videoArrayTitle = command.arguments[2] as? [String], let liked = command.arguments[3] as? Bool {
             
             var splashImageDataArray: [Data] = []
-            for base64Image in base64Images {
-                guard let imageData = convertBase64ToData(base64String: base64Image) else {
-                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
-                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
-                    return
+            if base64Images[0] != "NoPosters" {
+                for base64Image in base64Images {
+                    guard let imageData = convertBase64ToData(base64String: base64Image) else {
+                        pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string Image to Data. Invalid base 64 string.")
+                        self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+                        return
+                    }
+                    splashImageDataArray.append(imageData)
                 }
-                splashImageDataArray.append(imageData)
             }
+            
+//            var splashImageDataArray: [Data] = []
+//            for base64Image in base64Images {
+//                guard let imageData = convertBase64ToData(base64String: base64Image) else {
+//                    pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR, messageAs: "Error trying to convert base 64 string to Data. Invalid base 64 string.")
+//                    self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
+//                    return
+//                }
+//                splashImageDataArray.append(imageData)
+//            }
             
             var videoDataArray = [Data]()
             //Loads local Video files into array as Data Objects

@@ -12,16 +12,16 @@ class BreathworkViewController: UIViewController {
         
     private var playerLayer:AVPlayerLayer?
     
-    private var mainAudioVideo = AVQueuePlayer()
+    private var mainAudioVideo:AVQueuePlayer?
    
-    private var firstAudio = AVQueuePlayer()
+    private var firstAudio:AVQueuePlayer?
     private var firstAudioLooper: AVPlayerLooper?
 
     private var secondAudioLooper: AVPlayerLooper?
-    private var secondAudio = AVQueuePlayer()
+    private var secondAudio:AVQueuePlayer?
     
     private var thirdAudioLooper: AVPlayerLooper?
-    private var thirdAudio = AVQueuePlayer()
+    private var thirdAudio:AVQueuePlayer?
        
     private var videoView:UIView!
     private var controlView:UIView!
@@ -108,7 +108,7 @@ class BreathworkViewController: UIViewController {
         
         watchedTimeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (_) in
            
-            if self.mainAudioVideo.timeControlStatus == .playing {
+            if self.mainAudioVideo?.timeControlStatus == .playing {
                 self.watchedTime += 1
             }
             
@@ -139,8 +139,10 @@ class BreathworkViewController: UIViewController {
         NSLayoutConstraint(item: loadingView!, attribute: NSLayoutConstraint.Attribute.top, relatedBy: NSLayoutConstraint.Relation.equal, toItem: view, attribute: NSLayoutConstraint.Attribute.top, multiplier: 1, constant: 0).isActive = true
         
 
-        splashView = UIImageView(image: splashImage[0])
-        
+       
+        if splashImage.count > self.currentBackgroundVideoIndex {
+            splashView = UIImageView(image: splashImage[0])
+        }
        
         splashView?.translatesAutoresizingMaskIntoConstraints = false
         splashView?.contentMode = .scaleAspectFill
@@ -422,13 +424,16 @@ class BreathworkViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoURL = backgroundVideoWithVoiceURL
         self.audioArray = audioArray
         self.watchedTime = 0
        
-        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
+        if splashImage != nil {
+            self.splashImage.append(UIImage(data: splashImage!) ?? UIImage())
+        }
+        
         
         self.createScreen()
         self.likeBtn.isSelected = isLiked
@@ -446,8 +451,8 @@ class BreathworkViewController: UIViewController {
         let playerItem = AVPlayerItem(url: URL(string: videoURL!)!)
         playerItem.preferredForwardBufferDuration = TimeInterval(30)
         mainAudioVideo = AVQueuePlayer(items: [playerItem])
-        mainAudioVideo.automaticallyWaitsToMinimizeStalling = true
-        mainAudioVideo.volume = audioSlider?.value ?? 0.0
+        mainAudioVideo?.automaticallyWaitsToMinimizeStalling = true
+        mainAudioVideo?.volume = audioSlider?.value ?? 0.0
         
         //video player
         playerLayer = AVPlayerLayer(player: mainAudioVideo)
@@ -464,25 +469,25 @@ class BreathworkViewController: UIViewController {
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
 
-        mainAudioVideo.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
+        mainAudioVideo?.addPeriodicTimeObserver(forInterval: time, queue: .main) {[weak self] (time) in
            
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+            self?.timeLabel.text = "\(self?.getTime(roundedSeconds: self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0))/\(self?.getTime(roundedSeconds: (self?.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
            
             print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
-                self.seekerSlider.setValue(Float(time.seconds), animated: true)
+            if Int(time.seconds) <  Int((self?.seekerSlider.maximumValue ?? 1)) && !(self?.seekerSlider.isHighlighted ?? true) && !(self?.seekerTouched ?? false) {
+                self?.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
             
-            if Int(self.mainAudioVideo.currentTime().seconds.rounded()) >= self.secondsToSkip {
-                self.skipBtn?.isHidden = true
+            if Int(self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0) >= (self?.secondsToSkip ?? 0) {
+                self?.skipBtn?.isHidden = true
             }
           
         }
 
-        mainAudioVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+        mainAudioVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
        
         //MARK: Subtitle setup
-        self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo)
+        self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo!)
     }
 
     /// Loads videos passed in params from Data.
@@ -495,14 +500,17 @@ class BreathworkViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.localVideoData = backgroundVideoWithVoiceData
         self.localAudioArray = audioArray
         self.watchedTime = 0
         self.isStreaming = false
         
-        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
+        
+        if splashImage != nil {
+            self.splashImage.append(UIImage(data: splashImage!) ?? UIImage())
+        }
         
         self.createScreen()
         self.likeBtn.isSelected = isLiked
@@ -519,8 +527,8 @@ class BreathworkViewController: UIViewController {
         let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
         let playerItem = AVPlayerItem(url: urlVideo)
         mainAudioVideo = AVQueuePlayer(items: [playerItem])
-        mainAudioVideo.volume = audioSlider?.value ?? 0.0
-        mainAudioVideo.automaticallyWaitsToMinimizeStalling = true
+        mainAudioVideo?.volume = audioSlider?.value ?? 0.0
+        mainAudioVideo?.automaticallyWaitsToMinimizeStalling = true
         
         //video player
         playerLayer = AVPlayerLayer(player: mainAudioVideo)
@@ -536,26 +544,26 @@ class BreathworkViewController: UIViewController {
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
 
-        mainAudioVideo.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
-
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
-
+        mainAudioVideo?.addPeriodicTimeObserver(forInterval: time, queue: .main) {[weak self] (time) in
+           
+            self?.timeLabel.text = "\(self?.getTime(roundedSeconds: self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0))/\(self?.getTime(roundedSeconds: (self?.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+           
             print(time.seconds)
-            if Int(time.seconds) < Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
-                self.seekerSlider.setValue(Float(time.seconds), animated: true)
-            }
-
-            if Int(self.mainAudioVideo.currentTime().seconds.rounded()) >= self.secondsToSkip {
-                self.skipBtn?.isHidden = true
+            if Int(time.seconds) <  Int((self?.seekerSlider.maximumValue ?? 1)) && !(self?.seekerSlider.isHighlighted ?? true) && !(self?.seekerTouched ?? false) {
+                self?.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
             
+            if Int(self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0) >= (self?.secondsToSkip ?? 0) {
+                self?.skipBtn?.isHidden = true
+            }
+          
         }
 
-        mainAudioVideo.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
+        mainAudioVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
        
 //        //MARK: Subtitle setup
 
-        self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo)
+        self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo!)
         
     }
     
@@ -563,8 +571,8 @@ class BreathworkViewController: UIViewController {
         //MARK: Main player setup
         let playerAudioItem = AVPlayerItem(url: URL(string: audioArray![0])!)
         firstAudio = AVQueuePlayer(items: [playerAudioItem])
-        firstAudioLooper = AVPlayerLooper(player: firstAudio, templateItem: playerAudioItem)
-        firstAudio.automaticallyWaitsToMinimizeStalling = true
+        firstAudioLooper = AVPlayerLooper(player: firstAudio!, templateItem: playerAudioItem)
+        firstAudio?.automaticallyWaitsToMinimizeStalling = true
 
         
         //MARK: Second player setup
@@ -572,8 +580,8 @@ class BreathworkViewController: UIViewController {
             //second audio player
             let pai2 = AVPlayerItem(url: URL(string: audioArray![1])!)
             secondAudio = AVQueuePlayer(items: [pai2])
-            secondAudioLooper = AVPlayerLooper(player: secondAudio, templateItem: pai2)
-            secondAudio.automaticallyWaitsToMinimizeStalling = true
+            secondAudioLooper = AVPlayerLooper(player: secondAudio!, templateItem: pai2)
+            secondAudio?.automaticallyWaitsToMinimizeStalling = true
         }
         
         //MARK: Third player setup
@@ -581,8 +589,8 @@ class BreathworkViewController: UIViewController {
             //third audio player
             let pai3 = AVPlayerItem(url: URL(string: audioArray![2])!)
             thirdAudio = AVQueuePlayer(items: [pai3])
-            thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
-            thirdAudio.automaticallyWaitsToMinimizeStalling = true
+            thirdAudioLooper = AVPlayerLooper(player: thirdAudio!, templateItem: pai3)
+            thirdAudio?.automaticallyWaitsToMinimizeStalling = true
         }
     }
     
@@ -593,8 +601,8 @@ class BreathworkViewController: UIViewController {
         let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainaudio.mp3")
         let playerAudioItem = AVPlayerItem(url: urlAudio)
         firstAudio = AVQueuePlayer(items: [playerAudioItem])
-        firstAudioLooper = AVPlayerLooper(player: firstAudio, templateItem: playerAudioItem)
-        firstAudio.automaticallyWaitsToMinimizeStalling = true
+        firstAudioLooper = AVPlayerLooper(player: firstAudio!, templateItem: playerAudioItem)
+        firstAudio?.automaticallyWaitsToMinimizeStalling = true
     
         
         //MARK: Second player setup
@@ -603,8 +611,8 @@ class BreathworkViewController: UIViewController {
             let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/secondaudio.mp3")
             let pai2 = AVPlayerItem(url: urlAudio)
             secondAudio = AVQueuePlayer(items: [pai2])
-            secondAudioLooper = AVPlayerLooper(player: secondAudio, templateItem: pai2)
-            secondAudio.automaticallyWaitsToMinimizeStalling = true
+            secondAudioLooper = AVPlayerLooper(player: secondAudio!, templateItem: pai2)
+            secondAudio?.automaticallyWaitsToMinimizeStalling = true
         }
         
         //MARK: Third player setup
@@ -614,8 +622,8 @@ class BreathworkViewController: UIViewController {
             let urlAudio = URL(fileURLWithPath: NSTemporaryDirectory() + "/thirdaudio.mp3")
             let pai3 = AVPlayerItem(url: urlAudio)
             thirdAudio = AVQueuePlayer(items: [pai3])
-            thirdAudioLooper = AVPlayerLooper(player: thirdAudio, templateItem: pai3)
-            thirdAudio.automaticallyWaitsToMinimizeStalling = true
+            thirdAudioLooper = AVPlayerLooper(player: thirdAudio!, templateItem: pai3)
+            thirdAudio?.automaticallyWaitsToMinimizeStalling = true
         }
     }
     
@@ -653,7 +661,7 @@ class BreathworkViewController: UIViewController {
         self.stopBackground()
         closeTimer?.invalidate()
         self.pause()
-        let maxTime = (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()
+        let maxTime = (self.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()
         
         self.callback?(self.watchedTime >= (Int(maxTime) * 80 / 100), self.likeBtn.isSelected)
         
@@ -663,7 +671,11 @@ class BreathworkViewController: UIViewController {
         else {
             self.dismiss(animated: true, completion: nil)
         }
-
+        self.firstAudio = nil
+        self.secondAudio = nil
+        self.thirdAudio = nil
+        self.mainAudioVideo?.removeObserver(self, forKeyPath: "status")
+        self.mainAudioVideo = nil
     }
     @objc func swipedScreenUp(_ sender:UISwipeGestureRecognizer) {
         print("swipe up")
@@ -742,7 +754,7 @@ class BreathworkViewController: UIViewController {
     }
     
     @objc func playerDidFinishPlaying(_ notification: Notification) {
-        if self.mainAudioVideo.currentTime().seconds.rounded() >= (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded() {
+        if (self.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0) >= (self.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded() {
             self.closeClick()
         }
     }
@@ -776,9 +788,9 @@ class BreathworkViewController: UIViewController {
     }
     @objc func moveForwardClick(_ sender:UIButton){
 
-        let playerCurrentTime = CMTimeGetSeconds(mainAudioVideo.currentTime())
+        let playerCurrentTime = CMTimeGetSeconds(mainAudioVideo!.currentTime() )
         let time:CMTime = CMTimeMake(value: Int64(playerCurrentTime + 15), timescale: 1)
-        mainAudioVideo.seek(to: time)
+        mainAudioVideo?.seek(to: time)
         
         closeTimer?.invalidate()
         if self.playPauseBtn.isSelected {
@@ -786,9 +798,9 @@ class BreathworkViewController: UIViewController {
         }
     }
     @objc func moveBackClick(_ sender:UIButton){
-        let playerCurrentTime = CMTimeGetSeconds(mainAudioVideo.currentTime())
+        let playerCurrentTime = CMTimeGetSeconds(mainAudioVideo!.currentTime())
         let time:CMTime = CMTimeMake(value: Int64(playerCurrentTime - 15), timescale: 1)
-        mainAudioVideo.seek(to: time)
+        mainAudioVideo?.seek(to: time)
         
         closeTimer?.invalidate()
         if self.playPauseBtn.isSelected {
@@ -797,39 +809,39 @@ class BreathworkViewController: UIViewController {
     }
     @objc func sliderValueDidChange(_ sender:UISlider){
         if sender.tag == 1 {
-            mainAudioVideo.volume = audioSlider?.value ?? 0.0
+            mainAudioVideo?.volume = audioSlider?.value ?? 0.0
             
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.firstAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                self.secondAudio.volume = 0
-                self.thirdAudio.volume = 0
-                print(firstAudio.volume)
+                self.firstAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.secondAudio?.volume = 0
+                self.thirdAudio?.volume = 0
+                print(firstAudio?.volume)
                 break
             case 1:
-                self.firstAudio.volume = 0
-                self.secondAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                self.thirdAudio.volume = 0
-                print(secondAudio.volume)
+                self.firstAudio?.volume = 0
+                self.secondAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.thirdAudio?.volume = 0
+                print(secondAudio?.volume)
                 break
             case 2:
-                self.firstAudio.volume = 0
-                self.secondAudio.volume = 0
-                self.thirdAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                print(thirdAudio.volume)
+                self.firstAudio?.volume = 0
+                self.secondAudio?.volume = 0
+                self.thirdAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                print(thirdAudio?.volume)
                 break
             default:
                 break
             }
             
            
-            print(mainAudioVideo.volume)
+            print(mainAudioVideo?.volume)
         }
         else if sender.tag == 2 {
             self.seekerTouched = true
             let seconds : Int64 = Int64(sender.value)
             let time:CMTime = CMTimeMake(value: seconds, timescale: 1)
-            mainAudioVideo.seek(to: time)
+            mainAudioVideo?.seek(to: time)
             
           
         }
@@ -869,7 +881,7 @@ class BreathworkViewController: UIViewController {
             switch player.status {
               case .readyToPlay:
                 if player == mainAudioVideo {
-                    self.mainAudioVideo.preroll(atRate: 1) { (audioFinished2) in
+                    self.mainAudioVideo?.preroll(atRate: 1) { (audioFinished2) in
                         print("a1 preroll \(audioFinished2)")
                         if audioFinished2 {
                             self.playPauseBtn.isSelected = true
@@ -896,11 +908,11 @@ class BreathworkViewController: UIViewController {
     func play(shoudHide5Sec:Bool = false) {
         print("play")
         self.playBackground()
-        self.mainAudioVideo.play()
-        self.mainAudioVideo.volume = self.audioSlider?.value ?? 0.0
-        if let a = mainAudioVideo.currentItem?.asset.duration {
+        self.mainAudioVideo?.play()
+        self.mainAudioVideo?.volume = self.audioSlider?.value ?? 0.0
+        if let a = mainAudioVideo?.currentItem?.asset.duration {
             seekerSlider?.maximumValue = Float(a.seconds)
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo.currentTime().seconds.rounded()))/\(self.getTime(roundedSeconds: (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0))/\(self.getTime(roundedSeconds: (self.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
         }
        
         if shoudHide5Sec {
@@ -914,7 +926,7 @@ class BreathworkViewController: UIViewController {
     func pause(){
         print("pause)")
         self.stopBackground()
-        self.mainAudioVideo.pause()
+        self.mainAudioVideo?.pause()
         self.playPauseBtn.isSelected = false
         closeTimer?.invalidate()
         self.showControls()
@@ -922,7 +934,7 @@ class BreathworkViewController: UIViewController {
     
     @objc func appDidEnterBackground() {
        // self.pause()
-        self.mainAudioVideo.pause()
+        self.mainAudioVideo?.pause()
         self.stopBackground()
     }
     @objc func appDidEnterForeground() {
@@ -951,14 +963,14 @@ class BreathworkViewController: UIViewController {
         
         
             if self.playPauseBtn.isSelected {
-                let seconds : Int64 = Int64(max(self.mainAudioVideo.currentTime().seconds - 5, 0))
+                let seconds : Int64 = Int64(max((self.mainAudioVideo?.currentTime().seconds ?? 0) - 5, 0))
                 let time:CMTime = CMTimeMake(value: seconds, timescale: 1)
-                self.mainAudioVideo.seek(to: time)
-                self.mainAudioVideo.play()
+                self.mainAudioVideo?.seek(to: time)
+                self.mainAudioVideo?.play()
                 self.playBackground()
             }
             
-            if !self.isStreaming && self.mainAudioVideo.currentTime().seconds.rounded() >= (self.mainAudioVideo.currentItem?.asset.duration.seconds ?? 0.0).rounded(){
+            if !self.isStreaming && self.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0 >= (self.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded(){
                 self.closeClick()
             }
         }
@@ -966,10 +978,10 @@ class BreathworkViewController: UIViewController {
     }
     @objc func playBackground(){
         DispatchQueue.main.async {
-            self.mainAudioVideo.play()
-            self.firstAudio.play()
-            self.secondAudio.play()
-            self.thirdAudio.play()
+            self.mainAudioVideo?.play()
+            self.firstAudio?.play()
+            self.secondAudio?.play()
+            self.thirdAudio?.play()
             
         
             self.switchAudio()
@@ -979,9 +991,9 @@ class BreathworkViewController: UIViewController {
       
     }
     func stopBackground(){
-        self.firstAudio.pause()
-        self.secondAudio.pause()
-        self.thirdAudio.pause()
+        self.firstAudio?.pause()
+        self.secondAudio?.pause()
+        self.thirdAudio?.pause()
     }
     
     @objc func switchVideoHandle(_ sender:UIPageControl){
@@ -997,19 +1009,19 @@ class BreathworkViewController: UIViewController {
         DispatchQueue.main.async {
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.firstAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                self.secondAudio.volume = 0
-                self.thirdAudio.volume = 0
+                self.firstAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.secondAudio?.volume = 0
+                self.thirdAudio?.volume = 0
                 break
             case 1:
-                self.firstAudio.volume = 0
-                self.secondAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
-                self.thirdAudio.volume = 0
+                self.firstAudio?.volume = 0
+                self.secondAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.thirdAudio?.volume = 0
                 break
             case 2:
-                self.firstAudio.volume = 0
-                self.secondAudio.volume = 0
-                self.thirdAudio.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.firstAudio?.volume = 0
+                self.secondAudio?.volume = 0
+                self.thirdAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
                 break
             default:
                 break
@@ -1019,10 +1031,10 @@ class BreathworkViewController: UIViewController {
     }
     
     @objc func skipIntro(sender:UIButton) {
-        if self.secondsToSkip > 0 && self.mainAudioVideo.status == .readyToPlay {
+        if self.secondsToSkip > 0 && self.mainAudioVideo?.status == .readyToPlay {
             let seconds : Int64 = Int64(self.secondsToSkip)
             let time:CMTime = CMTimeMake(value: seconds, timescale: 1)
-            mainAudioVideo.seek(to: time)
+            mainAudioVideo?.seek(to: time)
             self.watchedTime = self.secondsToSkip
         }
     }
