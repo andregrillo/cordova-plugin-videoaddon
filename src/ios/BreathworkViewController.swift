@@ -9,6 +9,7 @@ import UIKit
 import AVKit
 class BreathworkViewController: UIViewController {
 
+    private weak var periodictimeObserver:NSObjectProtocol?
         
     private var playerLayer:AVPlayerLayer?
     
@@ -106,10 +107,11 @@ class BreathworkViewController: UIViewController {
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
         
-        watchedTimeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (_) in
+        watchedTimeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] (_) in
            
-            if self.mainAudioVideo?.timeControlStatus == .playing {
-                self.watchedTime += 1
+            if self?.mainAudioVideo?.timeControlStatus == .playing {
+                self?.watchedTime += 1
+              //  print("TIME \(self.watchedTime)")
             }
             
         })
@@ -121,12 +123,28 @@ class BreathworkViewController: UIViewController {
         self.watchedTimeTimer?.invalidate()
         self.closeTimer?.invalidate()
        
+        if let token = periodictimeObserver {
+            mainAudioVideo?.removeTimeObserver(token)
+            periodictimeObserver = nil
+        }
+        
         if #available(iOS 13.0, *) {
             NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
         } else {
             NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
         }
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
+        self.firstAudio = nil
+        self.secondAudio = nil
+        self.thirdAudio = nil
+        self.mainAudioVideo?.removeObserver(self, forKeyPath: "status")
+        self.mainAudioVideo = nil
+        
+        self.playerLayer = nil
+        self.secondAudioLooper = nil
+        self.thirdAudioLooper = nil
+        self.thirdAudio = nil
+        
     }
     private func createScreen() {
         self.loadingView = UIView()
@@ -424,16 +442,13 @@ class BreathworkViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoURL = backgroundVideoWithVoiceURL
         self.audioArray = audioArray
         self.watchedTime = 0
-       
-        if splashImage != nil {
-            self.splashImage.append(UIImage(data: splashImage!) ?? UIImage())
-        }
-        
+    
+        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
         
         self.createScreen()
         self.likeBtn.isSelected = isLiked
@@ -469,9 +484,11 @@ class BreathworkViewController: UIViewController {
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
 
-        mainAudioVideo?.addPeriodicTimeObserver(forInterval: time, queue: .main) {[weak self] (time) in
+        periodictimeObserver = mainAudioVideo?.addPeriodicTimeObserver(forInterval: time, queue: .main) {[weak self] (time) in
            
-            self?.timeLabel.text = "\(self?.getTime(roundedSeconds: self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0))/\(self?.getTime(roundedSeconds: (self?.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+            let t = self?.getTime(roundedSeconds: self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0) ?? "0.0"
+            let tMax = self?.getTime(roundedSeconds: (self?.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()) ?? "0.0"
+            self?.timeLabel.text = "\(t)/\(tMax)"
            
             print(time.seconds)
             if Int(time.seconds) <  Int((self?.seekerSlider.maximumValue ?? 1)) && !(self?.seekerSlider.isHighlighted ?? true) && !(self?.seekerTouched ?? false) {
@@ -482,7 +499,7 @@ class BreathworkViewController: UIViewController {
                 self?.skipBtn?.isHidden = true
             }
           
-        }
+        } as? NSObjectProtocol
 
         mainAudioVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
        
@@ -500,7 +517,7 @@ class BreathworkViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.localVideoData = backgroundVideoWithVoiceData
         self.localAudioArray = audioArray
@@ -508,9 +525,9 @@ class BreathworkViewController: UIViewController {
         self.isStreaming = false
         
         
-        if splashImage != nil {
-            self.splashImage.append(UIImage(data: splashImage!) ?? UIImage())
-        }
+       
+        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
+        
         
         self.createScreen()
         self.likeBtn.isSelected = isLiked
@@ -544,9 +561,11 @@ class BreathworkViewController: UIViewController {
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
 
-        mainAudioVideo?.addPeriodicTimeObserver(forInterval: time, queue: .main) {[weak self] (time) in
+        periodictimeObserver = mainAudioVideo?.addPeriodicTimeObserver(forInterval: time, queue: .main) {[weak self] (time) in
            
-            self?.timeLabel.text = "\(self?.getTime(roundedSeconds: self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0))/\(self?.getTime(roundedSeconds: (self?.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+            let t = self?.getTime(roundedSeconds: self?.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0) ?? "0.0"
+            let tMax = self?.getTime(roundedSeconds: (self?.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()) ?? "0.0"
+            self?.timeLabel.text = "\(t)/\(tMax)"
            
             print(time.seconds)
             if Int(time.seconds) <  Int((self?.seekerSlider.maximumValue ?? 1)) && !(self?.seekerSlider.isHighlighted ?? true) && !(self?.seekerTouched ?? false) {
@@ -557,7 +576,7 @@ class BreathworkViewController: UIViewController {
                 self?.skipBtn?.isHidden = true
             }
           
-        }
+        } as? NSObjectProtocol
 
         mainAudioVideo?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
        
@@ -671,11 +690,11 @@ class BreathworkViewController: UIViewController {
         else {
             self.dismiss(animated: true, completion: nil)
         }
-        self.firstAudio = nil
-        self.secondAudio = nil
-        self.thirdAudio = nil
-        self.mainAudioVideo?.removeObserver(self, forKeyPath: "status")
-        self.mainAudioVideo = nil
+//        self.firstAudio = nil
+//        self.secondAudio = nil
+//        self.thirdAudio = nil
+//        self.mainAudioVideo?.removeObserver(self, forKeyPath: "status")
+//        self.mainAudioVideo = nil
     }
     @objc func swipedScreenUp(_ sender:UISwipeGestureRecognizer) {
         print("swipe up")

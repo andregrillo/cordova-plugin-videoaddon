@@ -268,37 +268,37 @@ class DeskercisesViewController: UIViewController {
         swipeIcon3.heightAnchor.constraint(equalToConstant: 10).isActive = true
         
         
-        arrowTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true, block: { (_) in
+        arrowTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true, block: { [weak self] (_) in
            
            
                
             UIView.animate(withDuration: 0.3, delay: 0, options: [UIView.AnimationOptions.curveLinear]) {
-                    self.animationIndex = (self.animationIndex + 1) % 5
-                    switch self.animationIndex {
+                    self?.animationIndex = ((self?.animationIndex ?? 0) + 1) % 5
+                    switch self?.animationIndex {
 
                         case 0:
-                            self.swipeIcon.tintColor = self.colorFromHexString("808080")
-                            self.swipeIcon2.tintColor = self.colorFromHexString("a0a0a0")
-                            self.swipeIcon3.tintColor = self.colorFromHexString("c0c0c0")
+                            self?.swipeIcon.tintColor = self?.colorFromHexString("808080")
+                            self?.swipeIcon2.tintColor = self?.colorFromHexString("a0a0a0")
+                            self?.swipeIcon3.tintColor = self?.colorFromHexString("c0c0c0")
                             break
                         case 1:
-                            self.swipeIcon.tintColor = self.colorFromHexString("a0a0a0")
-                            self.swipeIcon2.tintColor = self.colorFromHexString("c0c0c0")
-                            self.swipeIcon3.tintColor = self.colorFromHexString("e0e0e0")
+                            self?.swipeIcon.tintColor = self?.colorFromHexString("a0a0a0")
+                            self?.swipeIcon2.tintColor = self?.colorFromHexString("c0c0c0")
+                            self?.swipeIcon3.tintColor = self?.colorFromHexString("e0e0e0")
                             break
                         case 2:
-                            self.swipeIcon.tintColor = self.colorFromHexString("c0c0c0")
-                            self.swipeIcon2.tintColor = self.colorFromHexString("e0e0e0")
-                            self.swipeIcon3.tintColor = self.colorFromHexString("ffffff")
+                            self?.swipeIcon.tintColor = self?.colorFromHexString("c0c0c0")
+                            self?.swipeIcon2.tintColor = self?.colorFromHexString("e0e0e0")
+                            self?.swipeIcon3.tintColor = self?.colorFromHexString("ffffff")
                             break
                         case 3:
-                            self.swipeIcon.tintColor = self.colorFromHexString("e0e0e0")
-                            self.swipeIcon2.tintColor = self.colorFromHexString("ffffff")
-                            self.swipeIcon3.tintColor = self.colorFromHexString("808080")
+                            self?.swipeIcon.tintColor = self?.colorFromHexString("e0e0e0")
+                            self?.swipeIcon2.tintColor = self?.colorFromHexString("ffffff")
+                            self?.swipeIcon3.tintColor = self?.colorFromHexString("808080")
                         case 4:
-                            self.swipeIcon.tintColor = self.colorFromHexString("ffffff")
-                            self.swipeIcon2.tintColor = self.colorFromHexString("808080")
-                            self.swipeIcon3.tintColor = self.colorFromHexString("a0a0a0")
+                            self?.swipeIcon.tintColor = self?.colorFromHexString("ffffff")
+                            self?.swipeIcon2.tintColor = self?.colorFromHexString("808080")
+                            self?.swipeIcon3.tintColor = self?.colorFromHexString("a0a0a0")
                             break
                         default:
                             break
@@ -328,7 +328,7 @@ class DeskercisesViewController: UIViewController {
     /// - Parameter videoTitleArray: Array of string with video titles
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 1 params (Bool) meaning (isLiked)
-    func loadDeskercisesVideosFromURL(videoArray:[String], videoTitleArray:[String], splashImageArr:[Data]?, isLiked:Bool, callback:@escaping ((Bool)->())) {
+    func loadDeskercisesVideosFromURL(videoArray:[String], videoTitleArray:[String], splashImageArr:[Data], isLiked:Bool, callback:@escaping ((Bool)->())) {
         self.callback = callback
         self.videoArray = videoArray
         self.videoTitleArray = videoTitleArray
@@ -356,7 +356,7 @@ class DeskercisesViewController: UIViewController {
     /// - Parameter videoTitleArray: Array of string with video titles
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 1 params (Bool) meaning (isLiked)
-    func loadDeskercisesVideosFromData(videoArray:[Data], videoTitleArray:[String], splashImageArr:[Data]?, isLiked:Bool, callback:@escaping ((Bool)->())) {
+    func loadDeskercisesVideosFromData(videoArray:[Data], videoTitleArray:[String], splashImageArr:[Data], isLiked:Bool, callback:@escaping ((Bool)->())) {
         self.callback = callback
         self.videoTitleArray = videoTitleArray
         self.localVideoArray = videoArray
@@ -630,7 +630,7 @@ class DeskercisesViewController: UIViewController {
       
     }
     
-    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+ //   override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         // Only handle observations for the playerItemContext
 //        guard (object as? AVPlayer) == self.mainVideo || (object as? AVPlayer) == self.secondVideo || (object as? AVPlayer) == self.thirdVideo  else {
 //              super.observeValue(forKeyPath: keyPath,
@@ -666,7 +666,7 @@ class DeskercisesViewController: UIViewController {
 //                               context: context)
 //        }
       
-    }
+//    }
     
     func continuePlaying(player:AVPlayer) {
         if !(player.currentItem!.isPlaybackLikelyToKeepUp) {

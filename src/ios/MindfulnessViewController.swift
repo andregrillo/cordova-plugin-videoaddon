@@ -10,6 +10,8 @@ import AVKit
 class MindfulnessViewController: UIViewController {
 
     private var audioVoice:AVPlayer?
+    private weak var periodictimeObserver:NSObjectProtocol?
+    
     
     private var playerLayer:AVPlayerLayer?
     private var playerLayer2:AVPlayerLayer?
@@ -80,11 +82,12 @@ class MindfulnessViewController: UIViewController {
     
     private var seekerTouched = false
     private var isStreaming:Bool = true
-   
+    
     override var shouldAutorotate: Bool {
         return false
     }
 
+    
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return UIInterfaceOrientationMask.portrait
     }
@@ -120,10 +123,10 @@ class MindfulnessViewController: UIViewController {
         try? AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
         try? AVAudioSession.sharedInstance().setActive(true)
         
-        watchedTimeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { (_) in
+        watchedTimeTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true, block: { [weak self] (_) in
            
-            if self.audioVoice?.timeControlStatus == .playing {
-                self.watchedTime += 1
+            if self?.audioVoice?.timeControlStatus == .playing {
+                self?.watchedTime += 1
               //  print("TIME \(self.watchedTime)")
             }
             
@@ -142,6 +145,12 @@ class MindfulnessViewController: UIViewController {
         super.viewDidDisappear(animated)
         self.watchedTimeTimer?.invalidate()
         self.closeTimer?.invalidate()
+        
+        if let token = periodictimeObserver {
+            audioVoice?.removeTimeObserver(token)
+            periodictimeObserver = nil
+        }
+        
         self.gifTimer?.invalidate()
         if #available(iOS 13.0, *) {
             NotificationCenter.default.removeObserver(self, name: UIScene.didActivateNotification, object: nil)
@@ -149,6 +158,28 @@ class MindfulnessViewController: UIViewController {
             NotificationCenter.default.removeObserver(self, name: UIApplication.willEnterForegroundNotification, object: nil)
         }
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
+        
+        audioVoice?.removeObserver(self, forKeyPath: "status")
+        audioVoice = nil
+        
+        playerLayer = nil
+        playerLayer2 = nil
+        playerLayer3 = nil
+        mainVideoLooper = nil
+        mainVideo = nil
+        mainAudio = nil
+        mainAudioLooper = nil
+       
+        secondVideoLooper = nil
+        secondVideo = nil
+        secondAudioLooper = nil
+        secondAudio = nil
+        
+        
+        thirdVideoLooper = nil
+        thirdVideo = nil
+        thirdAudioLooper = nil
+        thirdAudio = nil
     }
     private func createScreen() {
         self.loadingView = UIView()
@@ -456,7 +487,7 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImageArr:[Data]?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImageArr:[Data], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoArray = videoArray
         self.audioArray = audioArray
@@ -492,20 +523,22 @@ class MindfulnessViewController: UIViewController {
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
 
-        audioVoice?.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
-           
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice?.currentTime().seconds.rounded() ?? 0.0))/\(self.getTime(roundedSeconds: (self.audioVoice?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
-           
+        periodictimeObserver = audioVoice?.addPeriodicTimeObserver(forInterval: time, queue: .main) { [weak self] (time) in
+
+            let t = self?.getTime(roundedSeconds: self?.audioVoice?.currentTime().seconds.rounded() ?? 0.0) ?? "0.0"
+            let tMax = self?.getTime(roundedSeconds: (self?.audioVoice?.currentItem?.asset.duration.seconds ?? 0.0).rounded()) ?? "0.0"
+            self?.timeLabel.text = "\(t)/\(tMax)"
+
             print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched{
-                self.seekerSlider.setValue(Float(time.seconds), animated: true)
+            if Int(time.seconds) < Int((self?.seekerSlider.maximumValue ?? 0)) && !(self?.seekerSlider.isHighlighted ?? true) && !(self?.seekerTouched ?? true) {
+                self?.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
-            
-            if Int(self.audioVoice?.currentTime().seconds.rounded() ?? 0.0) >= self.secondsToSkip {
-                self.skipBtn?.isHidden = true
+
+            if Int(self?.audioVoice?.currentTime().seconds.rounded() ?? 0.0) >= (self?.secondsToSkip ?? 0){
+                self?.skipBtn?.isHidden = true
             }
-          
-        }
+
+        } as? NSObjectProtocol
 
         audioVoice?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
       
@@ -526,7 +559,7 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImageArr:[Data]?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImageArr:[Data], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.localVideoArray = videoArray
         self.localAudioArray = audioArray
@@ -565,20 +598,22 @@ class MindfulnessViewController: UIViewController {
         let timeScale = CMTimeScale(NSEC_PER_SEC)
         let time = CMTime(seconds: 1, preferredTimescale: timeScale)
 
-        audioVoice?.addPeriodicTimeObserver(forInterval: time, queue: .main) { (time) in
+        periodictimeObserver = audioVoice?.addPeriodicTimeObserver(forInterval: time, queue: .main) { [weak self] (time) in
 
-            self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice?.currentTime().seconds.rounded() ?? 0.0))/\(self.getTime(roundedSeconds: (self.audioVoice?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
+            let t = self?.getTime(roundedSeconds: self?.audioVoice?.currentTime().seconds.rounded() ?? 0.0) ?? "0.0"
+            let tMax = self?.getTime(roundedSeconds: (self?.audioVoice?.currentItem?.asset.duration.seconds ?? 0.0).rounded()) ?? "0.0"
+            self?.timeLabel.text = "\(t)/\(tMax)"
 
             print(time.seconds)
-            if Int(time.seconds) <  Int((self.seekerSlider.maximumValue)) && !self.seekerSlider.isHighlighted && !self.seekerTouched {
-                self.seekerSlider.setValue(Float(time.seconds), animated: true)
+            if Int(time.seconds) < Int((self?.seekerSlider.maximumValue ?? 0)) && !(self?.seekerSlider.isHighlighted ?? true) && !(self?.seekerTouched ?? true) {
+                self?.seekerSlider.setValue(Float(time.seconds), animated: true)
             }
 
-            if Int(self.audioVoice?.currentTime().seconds.rounded() ?? 0.0) >= self.secondsToSkip {
-                self.skipBtn?.isHidden = true
+            if Int(self?.audioVoice?.currentTime().seconds.rounded() ?? 0.0) >= (self?.secondsToSkip ?? 0){
+                self?.skipBtn?.isHidden = true
             }
-            
-        }
+
+        } as? NSObjectProtocol
 
         audioVoice?.addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions(), context: nil)
         
@@ -788,14 +823,14 @@ class MindfulnessViewController: UIViewController {
             self.dismiss(animated: true, completion: nil)
         }
         
-        self.mainVideo = nil
-        self.mainAudio = nil
-        self.secondAudio = nil
-        self.secondVideo = nil
-        self.thirdAudio = nil
-        self.thirdVideo = nil
-        self.audioVoice?.removeObserver(self, forKeyPath: "status")
-        self.audioVoice = nil
+//        self.mainVideo = nil
+//        self.mainAudio = nil
+//        self.secondAudio = nil
+//        self.secondVideo = nil
+//        self.thirdAudio = nil
+//        self.thirdVideo = nil
+//        self.audioVoice?.removeObserver(self, forKeyPath: "status")
+//        self.audioVoice = nil
     }
     @objc func swipedScreenUp(_ sender:UISwipeGestureRecognizer) {
         print("swipe up")
