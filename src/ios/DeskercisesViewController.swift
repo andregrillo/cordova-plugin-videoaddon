@@ -328,13 +328,21 @@ class DeskercisesViewController: UIViewController {
     /// - Parameter videoTitleArray: Array of string with video titles
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 1 params (Bool) meaning (isLiked)
-    func loadDeskercisesVideosFromURL(videoArray:[String], videoTitleArray:[String], splashImageArr:[Data], isLiked:Bool, callback:@escaping ((Bool)->())) {
+    func loadDeskercisesVideosFromURL(videoArray:[String], videoTitleArray:[String], splashImageArr:[Data?], isLiked:Bool, callback:@escaping ((Bool)->())) {
         self.callback = callback
         self.videoArray = videoArray
         self.videoTitleArray = videoTitleArray
-        for splash in splashImageArr ?? [] {
-            self.splashImage.append(UIImage(data: splash) ?? UIImage())
+        
+        for splash in splashImageArr {
+            if let d = splash {
+                self.splashImage.append(UIImage(data: d) ?? UIImage())
+            }
+            else {
+                self.splashImage.append(UIImage())
+            }
+           
         }
+        
         self.createScreen()
         
         self.likeBtn.isSelected = isLiked
@@ -356,14 +364,22 @@ class DeskercisesViewController: UIViewController {
     /// - Parameter videoTitleArray: Array of string with video titles
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 1 params (Bool) meaning (isLiked)
-    func loadDeskercisesVideosFromData(videoArray:[Data], videoTitleArray:[String], splashImageArr:[Data], isLiked:Bool, callback:@escaping ((Bool)->())) {
+    func loadDeskercisesVideosFromData(videoArray:[Data], videoTitleArray:[String], splashImageArr:[Data?], isLiked:Bool, callback:@escaping ((Bool)->())) {
         self.callback = callback
         self.videoTitleArray = videoTitleArray
         self.localVideoArray = videoArray
         self.isStreaming = false
-        for splash in splashImageArr ?? [] {
-            self.splashImage.append(UIImage(data: splash) ?? UIImage())
+       
+        for splash in splashImageArr {
+            if let d = splash {
+                self.splashImage.append(UIImage(data: d) ?? UIImage())
+            }
+            else {
+                self.splashImage.append(UIImage())
+            }
+           
         }
+        
         self.createScreen()
         
         self.likeBtn.isSelected = isLiked

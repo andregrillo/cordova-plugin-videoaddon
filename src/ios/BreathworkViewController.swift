@@ -442,13 +442,18 @@ class BreathworkViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoURL = backgroundVideoWithVoiceURL
         self.audioArray = audioArray
         self.watchedTime = 0
     
-        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
+        if let d = splashImage {
+            self.splashImage.append(UIImage(data: d) ?? UIImage())
+        }
+        else {
+            self.splashImage.append(UIImage())
+        }
         
         self.createScreen()
         self.likeBtn.isSelected = isLiked
@@ -517,7 +522,7 @@ class BreathworkViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.localVideoData = backgroundVideoWithVoiceData
         self.localAudioArray = audioArray
@@ -526,7 +531,12 @@ class BreathworkViewController: UIViewController {
         
         
        
-        self.splashImage.append(UIImage(data: splashImage) ?? UIImage())
+        if let d = splashImage {
+            self.splashImage.append(UIImage(data: d) ?? UIImage())
+        }
+        else {
+            self.splashImage.append(UIImage())
+        }
         
         
         self.createScreen()
