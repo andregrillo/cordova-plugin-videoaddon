@@ -70,6 +70,8 @@ class BreathworkViewController: UIViewController {
     
     private var seekerTouched = false
     private var isStreaming:Bool = true
+    
+    private var isMuted:Bool = false
    
     override var shouldAutorotate: Bool {
         return false
@@ -441,13 +443,14 @@ class BreathworkViewController: UIViewController {
     /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
+    /// - Parameter isMuted: True of False if all the audio was muted
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromURL(backgroundVideoWithVoiceURL:String, audioArray:[String], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, isMuted:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoURL = backgroundVideoWithVoiceURL
         self.audioArray = audioArray
         self.watchedTime = 0
-    
+        self.isMuted = isMuted
         if let d = splashImage {
             self.splashImage.append(UIImage(data: d) ?? UIImage())
         }
@@ -472,7 +475,7 @@ class BreathworkViewController: UIViewController {
         playerItem.preferredForwardBufferDuration = TimeInterval(30)
         mainAudioVideo = AVQueuePlayer(items: [playerItem])
         mainAudioVideo?.automaticallyWaitsToMinimizeStalling = true
-        mainAudioVideo?.volume = audioSlider?.value ?? 0.0
+        mainAudioVideo?.volume = !isMuted ? (audioSlider?.value ?? 0.0) : 0.0
         
         //video player
         playerLayer = AVPlayerLayer(player: mainAudioVideo)
@@ -510,6 +513,7 @@ class BreathworkViewController: UIViewController {
        
         //MARK: Subtitle setup
         self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo!)
+        self.view.bringSubviewToFront(self.controlView)
     }
 
     /// Loads videos passed in params from Data.
@@ -521,14 +525,15 @@ class BreathworkViewController: UIViewController {
     /// - Parameter splashImage: Data with the image shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
+    /// - Parameter isMuted: True of False if all the audio was muted
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadBreathworkVideosFromData(backgroundVideoWithVoiceData:Data, audioArray:[Data], subtitleData:Data, splashImage:Data?, secondsToSkip:Int, isLiked:Bool, isMuted:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.localVideoData = backgroundVideoWithVoiceData
         self.localAudioArray = audioArray
         self.watchedTime = 0
         self.isStreaming = false
-        
+        self.isMuted = isMuted
         
        
         if let d = splashImage {
@@ -554,7 +559,7 @@ class BreathworkViewController: UIViewController {
         let urlVideo = URL(fileURLWithPath: NSTemporaryDirectory() + "/mainvideo.mp4")
         let playerItem = AVPlayerItem(url: urlVideo)
         mainAudioVideo = AVQueuePlayer(items: [playerItem])
-        mainAudioVideo?.volume = audioSlider?.value ?? 0.0
+        mainAudioVideo?.volume = !isMuted ? (audioSlider?.value ?? 0.0) : 0.0
         mainAudioVideo?.automaticallyWaitsToMinimizeStalling = true
         
         //video player
@@ -593,6 +598,7 @@ class BreathworkViewController: UIViewController {
 //        //MARK: Subtitle setup
 
         self.addSubtitles().open(fromData: subtitleData, player: mainAudioVideo!)
+        self.view.bringSubviewToFront(self.controlView)
         
     }
     
@@ -705,6 +711,9 @@ class BreathworkViewController: UIViewController {
 //        self.thirdAudio = nil
 //        self.mainAudioVideo?.removeObserver(self, forKeyPath: "status")
 //        self.mainAudioVideo = nil
+        self.playerLayer?.removeFromSuperlayer()
+        self.mainAudioVideo = nil
+        self.playerLayer = nil
     }
     @objc func swipedScreenUp(_ sender:UISwipeGestureRecognizer) {
         print("swipe up")
@@ -838,25 +847,25 @@ class BreathworkViewController: UIViewController {
     }
     @objc func sliderValueDidChange(_ sender:UISlider){
         if sender.tag == 1 {
-            mainAudioVideo?.volume = audioSlider?.value ?? 0.0
+            mainAudioVideo?.volume = !isMuted ? (audioSlider?.value ?? 0.0) : 0.0
             
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.firstAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.firstAudio?.volume = !isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.secondAudio?.volume = 0
                 self.thirdAudio?.volume = 0
                 print(firstAudio?.volume)
                 break
             case 1:
                 self.firstAudio?.volume = 0
-                self.secondAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.secondAudio?.volume = !isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.thirdAudio?.volume = 0
                 print(secondAudio?.volume)
                 break
             case 2:
                 self.firstAudio?.volume = 0
                 self.secondAudio?.volume = 0
-                self.thirdAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.thirdAudio?.volume = !isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 print(thirdAudio?.volume)
                 break
             default:
@@ -938,7 +947,7 @@ class BreathworkViewController: UIViewController {
         print("play")
         self.playBackground()
         self.mainAudioVideo?.play()
-        self.mainAudioVideo?.volume = self.audioSlider?.value ?? 0.0
+        self.mainAudioVideo?.volume = !isMuted ? (self.audioSlider?.value ?? 0.0) : 0.0
         if let a = mainAudioVideo?.currentItem?.asset.duration {
             seekerSlider?.maximumValue = Float(a.seconds)
             self.timeLabel.text = "\(self.getTime(roundedSeconds: self.mainAudioVideo?.currentTime().seconds.rounded() ?? 0.0))/\(self.getTime(roundedSeconds: (self.mainAudioVideo?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
@@ -1038,19 +1047,19 @@ class BreathworkViewController: UIViewController {
         DispatchQueue.main.async {
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.firstAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.firstAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.secondAudio?.volume = 0
                 self.thirdAudio?.volume = 0
                 break
             case 1:
                 self.firstAudio?.volume = 0
-                self.secondAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.secondAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.thirdAudio?.volume = 0
                 break
             case 2:
                 self.firstAudio?.volume = 0
                 self.secondAudio?.volume = 0
-                self.thirdAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.thirdAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 break
             default:
                 break

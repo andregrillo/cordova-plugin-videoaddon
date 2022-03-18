@@ -83,6 +83,8 @@ class MindfulnessViewController: UIViewController {
     private var seekerTouched = false
     private var isStreaming:Bool = true
     
+    private var isMuted:Bool = false
+    
     override var shouldAutorotate: Bool {
         return false
     }
@@ -550,6 +552,7 @@ class MindfulnessViewController: UIViewController {
       
         //MARK: Subtitle setup
         self.addSubtitles().open(fromData: subtitleData, player: audioVoice!)
+        self.view.bringSubviewToFront(self.controlView)
       
     }
     
@@ -632,6 +635,7 @@ class MindfulnessViewController: UIViewController {
 //        //MARK: Subtitle setup
 
         self.addSubtitles().open(fromData: subtitleData, player: audioVoice!)
+        self.view.bringSubviewToFront(self.controlView)
         
     }
     
@@ -977,25 +981,25 @@ class MindfulnessViewController: UIViewController {
     }
     @objc func sliderValueDidChange(_ sender:UISlider){
         if sender.tag == 1 {
-            audioVoice?.volume = audioSlider?.value ?? 0.0
+            audioVoice?.volume = !self.isMuted ? (audioSlider?.value ?? 0.0) : 0.0
             
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.mainAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.mainAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.secondAudio?.volume = 0
                 self.thirdAudio?.volume = 0
                 print(mainAudio?.volume)
                 break
             case 1:
                 self.mainAudio?.volume = 0
-                self.secondAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.secondAudio?.volume = !isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.thirdAudio?.volume = 0
                 print(secondAudio?.volume)
                 break
             case 2:
                 self.mainAudio?.volume = 0
                 self.secondAudio?.volume = 0
-                self.thirdAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.thirdAudio?.volume = !isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 print(thirdAudio?.volume)
                 break
             default:
@@ -1078,7 +1082,7 @@ class MindfulnessViewController: UIViewController {
         print("play")
         self.playBackground()
         self.audioVoice?.play()
-        self.audioVoice?.volume = self.audioSlider?.value ?? 0.0
+        self.audioVoice?.volume = !self.isMuted ? (self.audioSlider?.value ?? 0.0) : 0.0
         if let a = audioVoice?.currentItem?.asset.duration {
             seekerSlider?.maximumValue = Float(a.seconds)
             self.timeLabel.text = "\(self.getTime(roundedSeconds: self.audioVoice?.currentTime().seconds.rounded() ?? 0.0))/\(self.getTime(roundedSeconds: (self.audioVoice?.currentItem?.asset.duration.seconds ?? 0.0).rounded()))"
@@ -1195,7 +1199,7 @@ class MindfulnessViewController: UIViewController {
                 self.playerLayer?.isHidden = false
                 self.playerLayer2?.isHidden = true
                 self.playerLayer3?.isHidden = true
-                self.mainAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.mainAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.secondAudio?.volume = 0
                 self.thirdAudio?.volume = 0
                 break
@@ -1204,7 +1208,7 @@ class MindfulnessViewController: UIViewController {
                 self.playerLayer2?.isHidden = false
                 self.playerLayer3?.isHidden = true
                 self.mainAudio?.volume = 0
-                self.secondAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.secondAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.thirdAudio?.volume = 0
                 break
             case 2:
@@ -1213,7 +1217,7 @@ class MindfulnessViewController: UIViewController {
                 self.playerLayer3?.isHidden = false
                 self.mainAudio?.volume = 0
                 self.secondAudio?.volume = 0
-                self.thirdAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.thirdAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 break
             default:
                 break
@@ -1226,19 +1230,19 @@ class MindfulnessViewController: UIViewController {
         DispatchQueue.main.async {
             switch self.currentBackgroundVideoIndex {
             case 0:
-                self.mainAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.mainAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.secondAudio?.volume = 0
                 self.thirdAudio?.volume = 0
                 break
             case 1:
                 self.mainAudio?.volume = 0
-                self.secondAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.secondAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 self.thirdAudio?.volume = 0
                 break
             case 2:
                 self.mainAudio?.volume = 0
                 self.secondAudio?.volume = 0
-                self.thirdAudio?.volume = (1.0 - (self.audioSlider?.value ?? 0)) * 0.5
+                self.thirdAudio?.volume = !self.isMuted ? ((1.0 - (self.audioSlider?.value ?? 0)) * 0.5) : 0.0
                 break
             default:
                 break
