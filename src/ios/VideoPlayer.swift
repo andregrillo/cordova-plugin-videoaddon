@@ -79,7 +79,7 @@ import Foundation
         var pluginResult = CDVPluginResult()
         
         //remover o audioVoiceURL do JS
-        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleBase64String = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoURL = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleBase64String = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool, let isMuted = command.arguments[6] as? Bool {
             
             var splashImageData: Data!
             if base64Image != "NoPoster" {
@@ -110,7 +110,7 @@ import Foundation
                                                                  subtitleData: subtitleData,
                                                                  splashImage: splashImageData,
                                                                  secondsToSkip: secondsToSkip,
-                                                                 isLiked: isLiked)
+                                                                 isLiked: isLiked,      isMuted: isMuted)
                 { watchedTime, isLiked in
                     playerViewController.pause()
                     playerViewController.dismiss(animated: false, completion: nil)
@@ -365,7 +365,7 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let base64Image = command.arguments [0] as? String, let backgroundVideoFile = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleFile = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool {
+        if let base64Image = command.arguments [0] as? String, let backgroundVideoFile = command.arguments[1] as? String, let audioArray = command.arguments[2] as? [String], let subtitleFile = command.arguments[3] as? String, let secondsToSkip = command.arguments[4] as? Int, let isLiked = command.arguments[5] as? Bool, let isMuted = command.arguments[6] as? Bool {
             
             var splashImageData: Data!
             if base64Image != "NoPoster" {
@@ -457,7 +457,8 @@ import Foundation
                                                               subtitleData: subtitleData,
                                                               splashImage: splashImageData,
                                                               secondsToSkip: secondsToSkip,
-                                                              isLiked: isLiked)
+                                                              isLiked: isLiked,
+                                                              isMuted: isMuted)
             { watchedTime, isLiked in
                 playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
