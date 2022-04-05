@@ -9,7 +9,7 @@ exports.playMindfulness = function (success, error, splashImage, videoArray,audi
 };
 
 exports.loadBreathwork = function (success, error, splashImage, backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
-    exec(success, error, 'VideoPlayer', 'loadBreathwork', [splashImage, backgroundVideoURL,audioArray,subtitleURL,secondsToSkip,isLiked]);
+    exec(success, error, 'VideoPlayer', 'loadBreathwork', [splashImage, backgroundVideoURL,audioArray,subtitleURL,secondsToSkip,isLiked,isMuted]);
 };
 
 exports.playMindfulnessFromLocal = function (success, error, splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
@@ -17,7 +17,7 @@ exports.playMindfulnessFromLocal = function (success, error, splashImage, videoA
 };
 
 exports.loadBreathworkFromLocal = function (success, error, splashImage, backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
-    exec(success, error, 'VideoPlayer', 'loadBreathworkFromData', [splashImage, backgroundVideoURL,audioArray,subtitleURL,secondsToSkip,isLiked]);
+    exec(success, error, 'VideoPlayer', 'loadBreathworkFromData', [splashImage, backgroundVideoURL,audioArray,subtitleURL,secondsToSkip,isLiked,isMuted]);
 };
 
 exports.playDeskercisesFromLocal = function (success, error, splashImage, videoArray, videoTitle, liked) {
