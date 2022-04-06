@@ -13,7 +13,7 @@ import Foundation
     func loadMindfullness(command: CDVInvokedUrlCommand) {
         var pluginResult = CDVPluginResult()
         
-        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleBase64String = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let audioVoiceURL = command.arguments[3] as? String, let subtitleBase64String = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool, let isMuted = command.arguments[6] as? Bool {
             
             var splashImageDataArray: [Data?] = []
             if !base64Images.isEmpty {
@@ -207,7 +207,7 @@ import Foundation
         var pluginResult = CDVPluginResult()
         let libraryDirectory = try! FileManager.default.url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         
-        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let voice = command.arguments[3] as? String, let subtitle = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool {
+        if let base64Images = command.arguments [0] as? [String], let videoArray = command.arguments[1] as? [String], let audioArray = command.arguments[2] as? [String], let voice = command.arguments[3] as? String, let subtitle = command.arguments[4] as? String, let secondsToSkip = command.arguments[5] as? Int, let isLiked = command.arguments[6] as? Bool, let isMuted = command.arguments[7] as? Bool {
             
             var splashImageDataArray: [Data?] = []
             if !base64Images.isEmpty {
