@@ -4,19 +4,19 @@ exports.playDeskercises = function (success, error, splashImage, videoArray, vid
     exec(success, error, 'VideoPlayer', 'loadDeskercises', [splashImage, videoArray,videoTitle,liked]);
 };
 
-exports.playMindfulness = function (success, error, splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
-    exec(success, error, 'VideoPlayer', 'loadMindfullness', [splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked]);
+exports.playMindfulness = function (success, error, splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked,isMuted) {
+    exec(success, error, 'VideoPlayer', 'loadMindfullness', [splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked, isMuted]);
 };
 
-exports.loadBreathwork = function (success, error, splashImage, backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
+exports.loadBreathwork = function (success, error, splashImage, backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked,isMuted) {
     exec(success, error, 'VideoPlayer', 'loadBreathwork', [splashImage, backgroundVideoURL,audioArray,subtitleURL,secondsToSkip,isLiked,isMuted]);
 };
 
-exports.playMindfulnessFromLocal = function (success, error, splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
-    exec(success, error, 'VideoPlayer', 'loadMindfullnessVideosFromData', [splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked]);
+exports.playMindfulnessFromLocal = function (success, error, splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked,isMuted) {
+    exec(success, error, 'VideoPlayer', 'loadMindfullnessVideosFromData', [splashImage, videoArray,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked,isMuted]);
 };
 
-exports.loadBreathworkFromLocal = function (success, error, splashImage, backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked) {
+exports.loadBreathworkFromLocal = function (success, error, splashImage, backgroundVideoURL,audioArray,audioVoiceURL,subtitleURL,secondsToSkip,isLiked,isMuted) {
     exec(success, error, 'VideoPlayer', 'loadBreathworkFromData', [splashImage, backgroundVideoURL,audioArray,subtitleURL,secondsToSkip,isLiked,isMuted]);
 };
 
