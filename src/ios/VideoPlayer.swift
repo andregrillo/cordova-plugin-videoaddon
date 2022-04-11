@@ -45,7 +45,8 @@ import Foundation
                                                                    subtitleData: subtitleData,
                                                                    splashImageArr: splashImageDataArray,
                                                                    secondsToSkip: secondsToSkip,
-                                                                   isLiked: isLiked)
+                                                                   isLiked: isLiked,
+                                                                   isMuted: isMuted)
                 { watchedTime, isLiked in
                     playerViewController.pause()
                     playerViewController.dismiss(animated: false, completion: nil)
@@ -334,7 +335,8 @@ import Foundation
                                                                 subtitleData: subtitleData,
                                                                 splashImageArr: splashImageDataArray,
                                                                 secondsToSkip: secondsToSkip,
-                                                                isLiked: isLiked)
+                                                                isLiked: isLiked,
+                                                                isMuted: isMuted)
             { watchedTime, isLiked in
                 playerViewController.pause()
                 playerViewController.dismiss(animated: false, completion: nil)
