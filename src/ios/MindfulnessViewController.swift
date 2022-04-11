@@ -489,7 +489,7 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImageArr:[Data?], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImageArr:[Data?], secondsToSkip:Int, isLiked:Bool, isMuted:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoArray = videoArray
         self.audioArray = audioArray
@@ -568,7 +568,7 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
-    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImageArr:[Data?], secondsToSkip:Int, isLiked:Bool, callback:@escaping ((Bool, Bool)->())) {
+    func loadMindfullnessVideosFromData(videoArray:[Data], audioArray:[Data], audioVoiceData:Data, subtitleData:Data, splashImageArr:[Data?], secondsToSkip:Int, isLiked:Bool, isMuted:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.localVideoArray = videoArray
         self.localAudioArray = audioArray
