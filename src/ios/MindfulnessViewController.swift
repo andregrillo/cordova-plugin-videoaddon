@@ -488,12 +488,14 @@ class MindfulnessViewController: UIViewController {
     /// - Parameter splashImageArr: Array of data with the images shown while loading
     /// - Parameter secondsToSkip: Number of seconds that the Skip Button should skip in the narration, if less or equals to 0 the button is hidden/disabled
     /// - Parameter isLiked: True of False if the video was previously liked
+    /// - Parameter isMuted: True of False if all the audio was muted
     /// - Parameter callback: Reference to the method to be called when the close button is pressed, should receive 2 params (Bool, Bool) meaning (true if watched more than 80%, isLiked)
     func loadMindfullnessVideosFromURL(videoArray:[String], audioArray:[String], audioVoiceURL:String, subtitleData:Data, splashImageArr:[Data?], secondsToSkip:Int, isLiked:Bool, isMuted:Bool, callback:@escaping ((Bool, Bool)->())) {
         self.callback = callback
         self.videoArray = videoArray
         self.audioArray = audioArray
         self.watchedTime = 0
+        self.isMuted = isMuted
         
         for splash in splashImageArr {
             if let d = splash {
@@ -574,6 +576,7 @@ class MindfulnessViewController: UIViewController {
         self.localAudioArray = audioArray
         self.watchedTime = 0
         self.isStreaming = false
+        self.isMuted = isMuted
         
         for splash in splashImageArr {
             if let d = splash {
